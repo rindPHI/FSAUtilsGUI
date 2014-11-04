@@ -22,7 +22,7 @@ The following steps should work for a Linux system.
 2. Download the archive:
    
    ```bash
-   wget https://github.com/rindPHI/FSAUtils/archive/master.zip
+   wget https://github.com/rindPHI/FSAUtilsGUI/archive/master.zip
    ```
    
 3. Unzip it:
@@ -34,18 +34,18 @@ The following steps should work for a Linux system.
 4. Build it:
    
    ```bash
-   cd FSAUtils-master
+   cd FSAUtilsGUI-master
    ant
    ```
    
-   As the result, you find a file "FSAUtils.jar" in the directory `lib/`
+   As the result, you find a file "FSAUtils_GUI.jar" in the directory `lib/`
    which you need to add to the classpath of scalac and scala in order
    to compile / run your objects that make use of FSAUtils.
    
 5. ...and run it:
    
    ```bash
-   scala -classpath ".:/path/to/FSAUtils.jar" YourObject
+   scala -classpath ".:/path/to/FSAUtils.jar:/path/to/FSAUtils_GUI.jar" de.dominicscheurer.fsautils.gui.SimpleWindow
    ```
 
 License
