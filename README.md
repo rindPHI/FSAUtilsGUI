@@ -17,7 +17,7 @@ variable `$SCALA_HOME` has to be correctly set to the path where Scala resides.
 
 The following steps should work for a Linux system.
 
-1. Build FSAUtils.
+1. Download and build FSAUtils (https://github.com/rindPHI/FSAUtilsGUI).
 
 2. Download the archive:
    
