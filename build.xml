@@ -21,8 +21,12 @@
         <property
             name="scala-library.jar"
             value="${env.SCALA_HOME}/lib/scala-library.jar" />
+        <property
+            name="scala-swing.jar"
+            value="${env.SCALA_HOME}/lib/scala-swing_2.11-1.0.1.jar" />
         <path id="build.classpath">
             <pathelement location="${scala-library.jar}" />
+            <pathelement location="${scala-swing.jar}"/>
             <pathelement location="${build.dir}" />
         </path>
         <taskdef resource="scala/tools/ant/antlib.xml">
