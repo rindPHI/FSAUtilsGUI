@@ -27,10 +27,12 @@ import java.awt.Font
 class FSACanvas extends Panel {
 
     var states = Set[State]()
-    var nextStateCounter = 0
-    var notPossibleStateHint = None: Option[State]
     var selectedState = None: Option[State]
     var initialState = None: Option[State]
+    var edges = Set[(State,String,State)]()
+    
+    var nextStateCounter = 0
+    var notPossibleStateHint = None: Option[State]
 
     val STATE_DIAMETER = 50
     val ACCPT_STATE_INNER_DIAMETER = 44
@@ -43,6 +45,10 @@ class FSACanvas extends Panel {
         
         g.setFont(new Font("SansSerif", Font.PLAIN, 20))
 
+        for (edge <- edges) {
+            //TODO...
+        }
+        
         for (state <- states) {
             g setColor Color.BLACK
             selectedState match {
@@ -120,6 +126,23 @@ class FSACanvas extends Panel {
             
             selectedState = Some(intersectingStates head)
             
+        }
+        
+        repaint
+    }
+
+    def checkEdge(point: Point) {
+        val state = State(point.getX.toInt, point.getY.toInt, nextStateCounter.toString, false)
+        val intersectingStates = ((states - state) filter {
+            case State(otherX: Int, otherY: Int, _, _) =>
+                getOuterOval(state.x, state.y) intersects getOuterOval(otherX, otherY).getBounds2D
+        })
+        
+        selectedState match {
+            case None =>
+            case Some(otherState) =>
+                if (intersectingStates.size == 1)
+                    edges += ((otherState, "XXX", intersectingStates.head))
         }
         
         repaint

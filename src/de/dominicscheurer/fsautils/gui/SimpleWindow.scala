@@ -26,6 +26,8 @@ import java.awt.{ Color, Graphics2D }
 
 object SimpleWindow extends SimpleSwingApplication {
     
+    var shiftHold = false
+    
     def top = new MainFrame {        
         title = "A Sample Scala Swing GUI"
     
@@ -55,7 +57,9 @@ object SimpleWindow extends SimpleSwingApplication {
         // react to events
         reactions += {
             case MouseClicked(_, point, _, clicks, _) =>
-                if (clicks == 1)
+                if (clicks == 1 && shiftHold)
+                    canvas checkEdge point
+                else if (clicks == 1 && !shiftHold)
                     canvas checkSelect point
                 else if (clicks == 2)
                     canvas checkState point
@@ -63,6 +67,10 @@ object SimpleWindow extends SimpleSwingApplication {
                 canvas checkAccepting
             case KeyTyped(_, 'i', _, _) =>
                 canvas checkInitial
+            case KeyReleased(_, Key.Shift, _, _) =>
+                shiftHold = false
+            case KeyPressed(_, Key.Shift, _, _) =>
+                shiftHold = true
         }
     }
 }
