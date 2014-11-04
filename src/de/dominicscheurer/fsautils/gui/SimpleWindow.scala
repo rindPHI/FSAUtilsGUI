@@ -31,6 +31,7 @@ object SimpleWindow extends SimpleSwingApplication {
     
         val canvas = new FSACanvas {
             preferredSize = new Dimension(500, 500)
+            focusable = true
         }
     
         contents = new BorderPanel {
@@ -49,12 +50,19 @@ object SimpleWindow extends SimpleSwingApplication {
     
         // specify which Components produce events of interest
         listenTo(canvas.mouse.clicks)
+        listenTo(canvas.keys)
     
         // react to events
         reactions += {
             case MouseClicked(_, point, _, clicks, _) =>
-                if (clicks == 2)
-                    canvas.addState(State(point.getX.toInt, point.getY.toInt, "Test", false, false))
+                if (clicks == 1)
+                    canvas checkSelect point
+                else if (clicks == 2)
+                    canvas checkState point
+            case KeyTyped(_, 'a', _, _) =>
+                canvas checkAccepting
+            case KeyTyped(_, 'i', _, _) =>
+                canvas checkInitial
         }
     }
 }

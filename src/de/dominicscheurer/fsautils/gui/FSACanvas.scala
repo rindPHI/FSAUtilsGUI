@@ -20,31 +20,57 @@
 package de.dominicscheurer.fsautils.gui
 
 import scala.swing.Panel
-import java.awt.{ Graphics2D, Color }
+import java.awt.{ Graphics2D, Color, Point }
 import java.awt.geom.Ellipse2D
+import java.awt.Font
 
 class FSACanvas extends Panel {
 
-    var states = List[State]()
+    var states = Set[State]()
+    var nextStateCounter = 0
     var notPossibleStateHint = None: Option[State]
+    var selectedState = None: Option[State]
+    var initialState = None: Option[State]
 
     val STATE_DIAMETER = 50
     val ACCPT_STATE_INNER_DIAMETER = 44
+    val ACCPT_STATE_INNERST_DIAMETER = 20
 
     override def paintComponent(g: Graphics2D) {
         // Start by erasing this Canvas
         g.setColor(Color.WHITE)
         g.fillRect(0, 0, size.width, size.height)
+        
+        g.setFont(new Font("SansSerif", Font.PLAIN, 20))
 
-        g.setColor(Color.BLACK)
         for (state <- states) {
+            g setColor Color.BLACK
+            selectedState match {
+                case None =>
+                case Some(otherState) =>
+                    if (state equals otherState)
+                        g.setColor(Color.BLUE)
+            }
+                
             state match {
-                case State(x: Int, y: Int, label: String, isStart: Boolean, isAccepting: Boolean) => {
+                case State(x: Int, y: Int, label: String, isAccepting: Boolean) => {
 
                     g.draw(getOuterOval(x, y))
 
                     if (isAccepting)
                         g.draw(getInnerOval(x, y))
+                        
+                    initialState match {
+                        case None => 
+                        case Some(otherState) =>
+                            if (otherState equals state) {
+                                g.setColor(Color.GREEN)
+                                g.fill(getInnerstOval(x, y))
+                                g.setColor(Color.BLACK)
+                            }
+                    }
+                        
+                    g.drawString(label, x - (5 * label.size), y + 7)
 
                 }
             }
@@ -57,18 +83,71 @@ class FSACanvas extends Panel {
         }
     }
 
-    def addState(state: State) {
-        if (((states.toSet - state) filter {
-            case State(otherX: Int, otherY: Int, _, _, _) =>
+    def checkState(point: Point) {
+        val state = State(point.getX.toInt, point.getY.toInt, nextStateCounter.toString, false)
+        val intersectingStates = ((states - state) filter {
+            case State(otherX: Int, otherY: Int, _, _) =>
                 getOuterOval(state.x, state.y) intersects getOuterOval(otherX, otherY).getBounds2D
-        }).isEmpty) {
+        })
+        
+        selectedState = None
+        
+        if (intersectingStates isEmpty) {
             
-            states = states :+ state
+            states += state
+            nextStateCounter += 1
+            selectedState = Some(state)
             
         } else {
             
             notPossibleStateHint = Some(state)
             
+        }
+        
+        repaint
+    }
+
+    def checkSelect(point: Point) {
+        val state = State(point.getX.toInt, point.getY.toInt, nextStateCounter.toString, false)
+        val intersectingStates = ((states - state) filter {
+            case State(otherX: Int, otherY: Int, _, _) =>
+                getOuterOval(state.x, state.y) intersects getOuterOval(otherX, otherY).getBounds2D
+        })
+        
+        selectedState = None
+        
+        if (intersectingStates.size == 1) {
+            
+            selectedState = Some(intersectingStates head)
+            
+        }
+        
+        repaint
+    }
+    
+    def checkAccepting = {
+        selectedState match {
+            case None =>
+            case Some(State(x,y,label,accepting)) => {
+                val oldState = State(x,y,label,accepting)
+                val newState = State(x,y,label,!accepting)
+                
+                if (initialState equals Some(oldState))
+                    initialState = Some(newState)
+                    
+                states -= oldState
+                states += newState
+                selectedState = Some(newState)
+            }
+        }
+        
+        repaint
+    }
+    
+    def checkInitial = {
+        selectedState match {
+            case None =>
+            case _ => initialState = selectedState
         }
         
         repaint
@@ -87,4 +166,11 @@ class FSACanvas extends Panel {
             y - (ACCPT_STATE_INNER_DIAMETER / 2),
             ACCPT_STATE_INNER_DIAMETER,
             ACCPT_STATE_INNER_DIAMETER)
+
+    private def getInnerstOval(x: Int, y: Int) =
+        new Ellipse2D.Float(
+            x - (ACCPT_STATE_INNERST_DIAMETER / 2),
+            y - (ACCPT_STATE_INNERST_DIAMETER / 2),
+            ACCPT_STATE_INNERST_DIAMETER,
+            ACCPT_STATE_INNERST_DIAMETER)
 }

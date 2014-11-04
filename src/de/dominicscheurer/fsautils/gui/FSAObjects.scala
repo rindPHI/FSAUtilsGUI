@@ -20,5 +20,5 @@
 package de.dominicscheurer.fsautils.gui
 
 abstract sealed class FSAObject
-case class State(x: Int, y: Int, label: String, isStart: Boolean, isAccepting: Boolean)
+case class State(x: Int, y: Int, label: String, isAccepting: Boolean)
 case class Edge(from: State, to: State, label: String)
