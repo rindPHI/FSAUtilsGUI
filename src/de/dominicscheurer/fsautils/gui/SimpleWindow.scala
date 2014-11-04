@@ -37,7 +37,7 @@ object SimpleWindow extends SimpleSwingApplication {
             layout(canvas) = Center
         }
     
-        size = new Dimension(300, 200)
+        size = new Dimension(700, 700)
     
         menuBar = new MenuBar {
             contents += new Menu("File") {
