@@ -89,6 +89,8 @@ class FSACanvas extends Panel {
                     } else {
                         // The edge is a loop
                         g.draw(getInnerOval(from.x + r, from.y - r))
+                        drawArrow(g, from.x + r + 5, from.y - 4, from.x + r, from.y - 1)
+                        
                         g.setColor(Color.WHITE)
                         g.fill(getOuterOval(from.x, from.y))
                         g.setColor(Color.BLACK)
