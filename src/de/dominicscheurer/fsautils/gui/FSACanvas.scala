@@ -27,8 +27,14 @@ import java.awt.geom.QuadCurve2D
 import scala.swing.Dialog
 import javax.swing.JOptionPane
 import java.awt.Dimension
+import de.dominicscheurer.fsautils.DFA
+import de.dominicscheurer.fsautils.Types._
+import de.dominicscheurer.fsautils.Conversions._
+import scala.util.control.NonFatal
 
 class FSACanvas extends Panel {
+    
+    type DFAState = de.dominicscheurer.fsautils.Types.State
 
     var states = Set[State]()
     var selectedState = None: Option[State]
@@ -267,6 +273,53 @@ class FSACanvas extends Panel {
         repaint
     }
 
+    def dfa: Option[DFA] = {
+        try {
+            val alphabet = edges.foldLeft(Set(): Set[Letter])(
+                (set,edge) => edge match {
+                    case (from, label, to) => set + Symbol(label)
+                }): Set[Letter]
+                
+            val dfaStates = states.map { 
+                case State(_, _, label, _) => q(label.toInt)
+            }: Set[DFAState]
+            
+            val dfaInitialState = (initialState match {
+                case None => error("No initial state selected!")
+                case Some(state) => q(state.label.toInt)
+            }): DFAState
+            
+            val dfaAccepting = ((states.filter { 
+                case State(_, _, _, isAccepting) => isAccepting
+            }).map { 
+                case State(_, _, label, _) => q(label.toInt)
+            }): Set[DFAState]
+            
+            def delta(s: DFAState, l: Letter): DFAState = {
+                val nextStateSet = edges.foldLeft(Set(): Set[DFAState])(
+                    (set, edge) => edge match {
+                        case (from, label, to) =>
+                            if (q(from.label.toInt).equals(s) && Symbol(label).equals(l))
+                                set + q(to.label.toInt)
+                            else
+                                set
+                    }
+                )
+                
+                if (nextStateSet isEmpty)
+                    error("Transition function is not complete.")
+                else
+                    nextStateSet head
+            }
+                
+            Some((alphabet, dfaStates, dfaInitialState, delta _, dfaAccepting): DFA)
+        } catch {
+            case NonFatal(e) =>
+                Dialog.showMessage(this, e.getMessage, "Error while constructing DFA", Dialog.Message.Error)
+                None
+        }
+    }
+    
     private def getOuterOval(x: Int, y: Int) =
         new Ellipse2D.Float(
             x - (STATE_DIAMETER / 2),

@@ -44,6 +44,9 @@ object SimpleWindow extends SimpleSwingApplication {
     
         menuBar = new MenuBar {
             contents += new Menu("File") {
+                contents += new MenuItem(Action("Print DFA") {
+                    println(canvas.dfa)
+                })
                 contents += new MenuItem(Action("Exit") {
                     sys.exit(0)
                 })
