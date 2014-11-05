@@ -24,6 +24,8 @@ import java.awt.{ Graphics2D, Color, Point }
 import java.awt.geom.Ellipse2D
 import java.awt.Font
 import java.awt.geom.QuadCurve2D
+import scala.swing.Dialog
+import javax.swing.JOptionPane
 
 class FSACanvas extends Panel {
 
@@ -38,15 +40,19 @@ class FSACanvas extends Panel {
     val STATE_DIAMETER = 50
     val ACCPT_STATE_INNER_DIAMETER = 44
     val ACCPT_STATE_INNERST_DIAMETER = 20
+    val STD_FG_COLOR = Color.BLACK
+    val STD_BG_COLOR = Color.WHITE
+    val IMPOSSIBLE_HINT_COLOR = Color.RED
+    val INITIAL_STATE_COLOR = Color.GREEN
 
     override def paintComponent(g: Graphics2D) {
         // Start by erasing this Canvas
-        g.setColor(Color.WHITE)
+        g.setColor(STD_BG_COLOR)
         g.fillRect(0, 0, size.width, size.height)
 
         g.setFont(new Font("SansSerif", Font.PLAIN, 20))
 
-        g setColor Color.BLACK
+        g setColor STD_FG_COLOR
         for (edge <- edges) {
             edge match {
                 case (from, label, to) => {
@@ -91,16 +97,16 @@ class FSACanvas extends Panel {
                         g.draw(getInnerOval(from.x + r, from.y - r))
                         drawArrow(g, from.x + r + 5, from.y - 4, from.x + r, from.y - 1)
                         
-                        g.setColor(Color.WHITE)
+                        g.setColor(STD_BG_COLOR)
                         g.fill(getOuterOval(from.x, from.y))
-                        g.setColor(Color.BLACK)
+                        g.setColor(STD_FG_COLOR)
                     }
                 }
             }
         }
 
         for (state <- states) {
-            g setColor Color.BLACK
+            g setColor STD_FG_COLOR
 
             selectedState match {
                 case None =>
@@ -121,9 +127,9 @@ class FSACanvas extends Panel {
                         case None =>
                         case Some(otherState) =>
                             if (otherState equals state) {
-                                g.setColor(Color.GREEN)
+                                g.setColor(INITIAL_STATE_COLOR)
                                 g.fill(getInnerstOval(x, y))
-                                g.setColor(Color.BLACK)
+                                g.setColor(STD_FG_COLOR)
                             }
                     }
 
@@ -133,7 +139,7 @@ class FSACanvas extends Panel {
             }
         }
 
-        g.setColor(Color.RED)
+        g.setColor(IMPOSSIBLE_HINT_COLOR)
         notPossibleStateHint match {
             case None        =>
             case Some(state) => notPossibleStateHint = None; g.draw(getOuterOval(state.x, state.y))
@@ -192,8 +198,16 @@ class FSACanvas extends Panel {
         selectedState match {
             case None =>
             case Some(otherState) =>
-                if (intersectingStates.size == 1)
-                    edges += ((otherState, "XXX", intersectingStates.head))
+                if (intersectingStates.size == 1) {
+                    Dialog.showInput(
+                        this,
+                        "On what input shall this transition occur?",
+                        title="New Transition",
+                        initial="") match {
+                            case None =>
+                            case Some(label) => edges += ((otherState, label, intersectingStates.head))
+                        }
+                }
         }
 
         repaint

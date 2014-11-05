@@ -57,8 +57,11 @@ object SimpleWindow extends SimpleSwingApplication {
         // react to events
         reactions += {
             case MouseClicked(_, point, _, clicks, _) =>
-                if (clicks == 1 && shiftHold)
+                if (clicks == 1 && shiftHold) {
+                    shiftHold = false // Hack due to input prompt, otherwise
+                                      // selection does not get forgotten
                     canvas checkEdge point
+                }
                 else if (clicks == 1 && !shiftHold)
                     canvas checkSelect point
                 else if (clicks == 2)
