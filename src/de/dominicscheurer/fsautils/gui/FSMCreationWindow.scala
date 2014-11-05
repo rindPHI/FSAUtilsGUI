@@ -24,7 +24,7 @@ import scala.swing.BorderPanel.Position._
 import event._
 import java.awt.{ Color, Graphics2D }
 
-object SimpleWindow extends SimpleSwingApplication {
+object FSMCreationWindow extends SimpleSwingApplication {
     
     var shiftHold = false
     
