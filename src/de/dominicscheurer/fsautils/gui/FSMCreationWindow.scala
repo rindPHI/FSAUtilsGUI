@@ -28,7 +28,7 @@ object FSMCreationWindow extends SimpleSwingApplication {
     
     var shiftHold = false
     
-    def top = new MainFrame {        
+    def top = new MainFrame {
         title = "A Sample Scala Swing GUI"
     
         val canvas = new FSACanvas {
