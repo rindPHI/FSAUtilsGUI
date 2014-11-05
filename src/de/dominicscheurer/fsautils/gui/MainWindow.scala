@@ -21,7 +21,9 @@ object MainWindow extends SimpleSwingApplication {
         
         // ListView of FSMs
         var loadedAutomata = Map(): Map[String, File]
-        val listView = new ListView(loadedAutomata.keys.toSeq)
+        val listView = new ListView(loadedAutomata.keys.toSeq) {
+            font = new Font("Sans Serif", Font.PLAIN, 20)
+        }
         listView.peer.setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
         
         val scrollPane = new ScrollPane()
@@ -73,6 +75,15 @@ object MainWindow extends SimpleSwingApplication {
                 minimumSize = buttonSize
                 maximumSize = buttonSize
                 preferredSize = buttonSize
+
+                listenTo(mouse.clicks)
+                reactions += {
+                    case MouseClicked(_, _, _, _, _) =>
+                        if (listView.selection.items.size == 1) {
+                            val xmlEditor = new XMLEditor(loadedAutomata(listView.selection.items(0)))
+                            xmlEditor.startup(Array())
+                        }
+                }
             }
         }
         
