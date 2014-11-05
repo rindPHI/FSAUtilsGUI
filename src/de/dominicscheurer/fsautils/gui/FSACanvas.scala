@@ -26,6 +26,7 @@ import java.awt.Font
 import java.awt.geom.QuadCurve2D
 import scala.swing.Dialog
 import javax.swing.JOptionPane
+import java.awt.Dimension
 
 class FSACanvas extends Panel {
 
@@ -41,11 +42,19 @@ class FSACanvas extends Panel {
     val ACCPT_STATE_INNER_DIAMETER = 44
     val ACCPT_STATE_INNERST_DIAMETER = 20
     val BORDER_SIZE = STATE_DIAMETER
+    
     val STD_FG_COLOR = Color.BLACK
     val STD_BG_COLOR = Color.WHITE
     val BORDER_BG_COLOR = Color.LIGHT_GRAY
     val IMPOSSIBLE_HINT_COLOR = Color.RED
     val INITIAL_STATE_COLOR = Color.GREEN
+    
+    val STD_FONT = new Font("SansSerif", Font.PLAIN, 20)
+    val HINT_FONT = new Font("SansSerif", Font.PLAIN, 10)
+    def INPUT_HINT_TEXT_POS(_size: Dimension) = (20, _size.height - 10)
+    val INPUT_HINT_TEXT =
+        "When a state is selected, press 'a' to make it accepting and 'i' to make it initial. " +
+        "Hold Shift and click on an other state to add a transition."
 
     override def paintComponent(g: Graphics2D) {
         g setColor BORDER_BG_COLOR
@@ -53,9 +62,13 @@ class FSACanvas extends Panel {
         g setColor STD_BG_COLOR
         g fillRect (BORDER_SIZE, BORDER_SIZE, size.width - (2 * BORDER_SIZE), size.height - (2 * BORDER_SIZE))
 
-        g setFont new Font("SansSerif", Font.PLAIN, 20)
-
+        g setFont HINT_FONT
         g setColor STD_FG_COLOR
+        
+        g drawString (INPUT_HINT_TEXT, INPUT_HINT_TEXT_POS(size)._1, INPUT_HINT_TEXT_POS(size)._2)
+        
+        g setFont STD_FONT
+        
         for (edge <- edges) {
             edge match {
                 case (from, label, to) => {
