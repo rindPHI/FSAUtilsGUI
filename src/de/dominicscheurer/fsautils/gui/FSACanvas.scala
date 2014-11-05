@@ -40,17 +40,20 @@ class FSACanvas extends Panel {
     val STATE_DIAMETER = 50
     val ACCPT_STATE_INNER_DIAMETER = 44
     val ACCPT_STATE_INNERST_DIAMETER = 20
+    val BORDER_SIZE = STATE_DIAMETER
     val STD_FG_COLOR = Color.BLACK
     val STD_BG_COLOR = Color.WHITE
+    val BORDER_BG_COLOR = Color.LIGHT_GRAY
     val IMPOSSIBLE_HINT_COLOR = Color.RED
     val INITIAL_STATE_COLOR = Color.GREEN
 
     override def paintComponent(g: Graphics2D) {
-        // Start by erasing this Canvas
-        g.setColor(STD_BG_COLOR)
-        g.fillRect(0, 0, size.width, size.height)
+        g setColor BORDER_BG_COLOR
+        g fillRect (0, 0, size.width, size.height)
+        g setColor STD_BG_COLOR
+        g fillRect (BORDER_SIZE, BORDER_SIZE, size.width - (2 * BORDER_SIZE), size.height - (2 * BORDER_SIZE))
 
-        g.setFont(new Font("SansSerif", Font.PLAIN, 20))
+        g setFont new Font("SansSerif", Font.PLAIN, 20)
 
         g setColor STD_FG_COLOR
         for (edge <- edges) {
@@ -92,14 +95,24 @@ class FSACanvas extends Panel {
                         }
 
                         drawArrow(g, x, y, xx, yy)
+                        
+                        // draw label
+                        val labelXDiff = (to.x - from.x) / 2
+                        val labelYDiff = (to.y - from.y) / 2
+                        g drawString (label, from.x + labelXDiff, from.y + labelYDiff)
                     } else {
                         // The edge is a loop
-                        g.draw(getInnerOval(from.x + r, from.y - r))
+                        g draw getInnerOval(from.x + r, from.y - r)
                         drawArrow(g, from.x + r + 5, from.y - 4, from.x + r, from.y - 1)
                         
-                        g.setColor(STD_BG_COLOR)
-                        g.fill(getOuterOval(from.x, from.y))
-                        g.setColor(STD_FG_COLOR)
+                        g setColor STD_BG_COLOR
+                        g fill getOuterOval(from.x, from.y)
+                        g setColor STD_FG_COLOR
+                        
+                        // draw label
+                        val labelX = from.x + ACCPT_STATE_INNER_DIAMETER
+                        val labelY = from.y - ACCPT_STATE_INNER_DIAMETER
+                        g drawString (label, labelX, labelY)
                     }
                 }
             }
@@ -112,7 +125,7 @@ class FSACanvas extends Panel {
                 case None =>
                 case Some(otherState) =>
                     if (state equals otherState)
-                        g.setColor(Color.BLUE)
+                        g setColor Color.BLUE
             }
 
             state match {
@@ -127,9 +140,9 @@ class FSACanvas extends Panel {
                         case None =>
                         case Some(otherState) =>
                             if (otherState equals state) {
-                                g.setColor(INITIAL_STATE_COLOR)
-                                g.fill(getInnerstOval(x, y))
-                                g.setColor(STD_FG_COLOR)
+                                g setColor INITIAL_STATE_COLOR
+                                g fill getInnerstOval(x, y)
+                                g setColor STD_FG_COLOR
                             }
                     }
 
@@ -155,7 +168,7 @@ class FSACanvas extends Panel {
 
         selectedState = None
 
-        if (intersectingStates isEmpty) {
+        if (intersectingStates.isEmpty && notInOuterBorder(point)) {
 
             states += state
             nextStateCounter += 1
@@ -261,6 +274,12 @@ class FSACanvas extends Panel {
             y - (ACCPT_STATE_INNERST_DIAMETER / 2),
             ACCPT_STATE_INNERST_DIAMETER,
             ACCPT_STATE_INNERST_DIAMETER)
+    
+    private def notInOuterBorder(point: Point) =
+        point.x > BORDER_SIZE + (STATE_DIAMETER / 2) &&
+        point.y > BORDER_SIZE + (STATE_DIAMETER / 2) &&
+        point.x < size.width - (BORDER_SIZE + (STATE_DIAMETER / 2)) &&
+        point.y < size.height - (BORDER_SIZE + (STATE_DIAMETER / 2))
 
     /**
      * Draws an arrow on the given Graphics2D context.
