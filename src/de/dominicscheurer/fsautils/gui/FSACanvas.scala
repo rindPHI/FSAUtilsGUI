@@ -45,12 +45,53 @@ class FSACanvas extends Panel {
         
         g.setFont(new Font("SansSerif", Font.PLAIN, 20))
 
+        g setColor Color.BLACK
         for (edge <- edges) {
-            //TODO...
+            edge match {
+                case (from, label, to) =>
+                    if (!(from equals to)) {
+                        var (x,y,xx,yy) = (from.x, from.y, to.x, to.y)
+                        
+                        val r = STATE_DIAMETER / 2
+                        val (diffX, diffY) = (Math.abs(xx - x).toInt, Math.abs(yy - y).toInt)
+                        
+                        val hypotenuse = Math.sqrt(
+                                Math.pow(diffX, 2) +
+                                Math.pow(diffY, 2))
+                        
+                        var alpha = 0
+                        if (diffX < r)
+                            alpha = Math.asin(diffY / hypotenuse).toInt
+                        else
+                            alpha = Math.acos(diffX / hypotenuse).toInt
+                        
+//                        val alpha = Math.atan((yy - y) / (xx - x))
+                        val offsetX = (r * Math.cos(alpha)).toInt
+                        val offsetY = (r * Math.sin(alpha)).toInt
+                        
+                        if (x < xx) {
+                            x += offsetX
+                            xx -= offsetX
+                        } else {
+                            x -= offsetX
+                            xx += offsetX
+                        }
+                        if (y < yy) {
+                            y += offsetY
+                            yy -= offsetY
+                        } else {
+                            y -= offsetY
+                            yy += offsetY
+                        }
+                        
+                        drawArrow(g, x, y, xx, yy)
+                    }
+            }
         }
         
         for (state <- states) {
             g setColor Color.BLACK
+            
             selectedState match {
                 case None =>
                 case Some(otherState) =>
@@ -196,4 +237,56 @@ class FSACanvas extends Panel {
             y - (ACCPT_STATE_INNERST_DIAMETER / 2),
             ACCPT_STATE_INNERST_DIAMETER,
             ACCPT_STATE_INNERST_DIAMETER)
+    
+     /**
+   * Draws an arrow on the given Graphics2D context
+   * @param g The Graphics2D context to draw on
+   * @param x The x location of the "tail" of the arrow
+   * @param y The y location of the "tail" of the arrow
+   * @param xx The x location of the "head" of the arrow
+   * @param yy The y location of the "head" of the arrow
+   */
+  private def drawArrow(g: Graphics2D, x: Int, y: Int, xx: Int, yy: Int)
+  {
+    val arrowWidth = 10.0f
+    val theta = 0.423f
+    var xPoints = new Array[Int](3)
+    var yPoints = new Array[Int](3)
+    var vecLine = new Array[Float](2)
+    var vecLeft = new Array[Float](2)
+    var fLength = 0f
+    var th = 0f
+    var ta = 0f
+    var baseX = 0f
+    var baseY = 0f
+
+    xPoints(0) = xx
+    yPoints(0) = yy
+
+    // build the line vector
+    vecLine(0) = xPoints(0) - x
+    vecLine(1) = yPoints(0) - y
+
+    // build the arrow base vector - normal to the line
+    vecLeft(0) = -vecLine(1)
+    vecLeft(1) = vecLine(0)
+
+    // setup length parameters
+    fLength = Math.sqrt( vecLine(0) * vecLine(0) + vecLine(1) * vecLine(1) ).toFloat
+    th = arrowWidth / ( 2.0f * fLength ) ;
+    ta = arrowWidth / ( 2.0f * ( Math.tan( theta ) / 2.0f ) * fLength ).toFloat
+
+    // find the base of the arrow
+    baseX = ( xPoints(0) - ta * vecLine(0))
+    baseY = ( yPoints(0) - ta * vecLine(1))
+
+    // build the points on the sides of the arrow
+    xPoints(1) = ( baseX + th * vecLeft(0) ).toInt
+    yPoints(1) = ( baseY + th * vecLeft(1) ).toInt
+    xPoints(2) = ( baseX - th * vecLeft(0) ).toInt
+    yPoints(2) = ( baseY - th * vecLeft(1) ).toInt
+
+    g.drawLine( x, y, baseX.toInt, baseY.toInt )
+    g.fillPolygon( xPoints, yPoints, 3 )
+  }
 }
