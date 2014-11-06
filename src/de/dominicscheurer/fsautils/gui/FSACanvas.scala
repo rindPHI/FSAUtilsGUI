@@ -285,7 +285,42 @@ class FSACanvas extends Panel {
             }
         }
     
-    def nfa: Option[NFA] = None
+    def nfa: Option[NFA] = {
+        try {
+            val dfaStates = states.map { 
+                case State(_, _, label, _) => q(label.toInt)
+            }: Set[DFAState]
+            
+            val dfaInitialState = (initialState match {
+                case None => error("No initial state selected!")
+                case Some(state) => q(state.label.toInt)
+            }): DFAState
+            
+            val dfaAccepting = ((states.filter { 
+                case State(_, _, _, isAccepting) => isAccepting
+            }).map { 
+                case State(_, _, label, _) => q(label.toInt)
+            }): Set[DFAState]
+            
+            def delta(s: DFAState, l: Letter): Set[DFAState] = {
+                edges.foldLeft(Set(): Set[DFAState])(
+                    (set, edge) => edge match {
+                        case (from, label, to) =>
+                            if (q(from.label.toInt).equals(s) && Symbol(label).equals(l))
+                                set + q(to.label.toInt)
+                            else
+                                set
+                    }
+                )
+            }
+                
+            Some((alphabet, dfaStates, dfaInitialState, delta _, dfaAccepting): NFA)
+        } catch {
+            case NonFatal(e) =>
+                Dialog.showMessage(this, e.getMessage, "Error while constructing NFA", Dialog.Message.Error)
+                None
+        }
+    }
 
     def dfa: Option[DFA] = {
         try {
