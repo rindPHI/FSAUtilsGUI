@@ -272,6 +272,28 @@ class FSACanvas extends Panel {
 
         repaint
     }
+
+    def checkDelete = {
+        selectedState match {
+            case None =>
+            case Some(state) => {
+                selectedState = None
+                states -= state
+                edges = edges.filterNot{
+                    case (from, trigger, to) =>
+                        (from.equals(state) || to.equals(state))
+                }
+                initialState match {
+                    case None =>
+                    case Some(otherState) =>
+                        if (state equals otherState)
+                            initialState = None
+                }
+            }
+        }
+
+        repaint
+    }
     
     def fsm: Option[FSM] =
         // If there are less than states * alphabet transitions,

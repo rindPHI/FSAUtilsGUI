@@ -45,6 +45,10 @@ class FSMCreationWindow extends SimpleSwingApplication with Subject[FSMCreationW
     
         size = new Dimension(700, 700)
     
+        import javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE
+        peer.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE)
+        override def closeOperation() { close }
+        
         menuBar = new MenuBar {
             contents += new Menu("File") {
                 contents += new MenuItem(Action("Save File") {
@@ -101,6 +105,8 @@ class FSMCreationWindow extends SimpleSwingApplication with Subject[FSMCreationW
                 canvas checkAccepting
             case KeyTyped(_, 'i', _, _) =>
                 canvas checkInitial
+            case KeyReleased(_, Key.Delete, _, _) =>
+                canvas checkDelete
             case KeyReleased(_, Key.Shift, _, _) =>
                 shiftHold = false
             case KeyPressed(_, Key.Shift, _, _) =>

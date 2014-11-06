@@ -12,6 +12,10 @@ extends SimpleSwingApplication {
         preferredSize = new Dimension(600, 400)
         title = file.getName
         
+        import javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE
+        peer.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE)
+        override def closeOperation() { close }
+        
         val source = fromFile(file)
         val content = source.mkString
         source.close()
