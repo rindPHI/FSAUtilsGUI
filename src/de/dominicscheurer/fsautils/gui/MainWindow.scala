@@ -6,8 +6,14 @@ import java.awt.Font
 import scala.swing.event.MouseClicked
 import javax.swing.ListSelectionModel
 import java.io.File
+import javax.swing.filechooser.FileFilter
 
-object MainWindow extends SimpleSwingApplication {
+object MainWindow extends SimpleSwingApplication with Observer[FSMCreationWindow] {
+    
+    var loadedAutomata = Map(): Map[String, File]// ListView of FSMs
+    val listView = new ListView(loadedAutomata.keys.toSeq) {
+        font = new Font("Sans Serif", Font.PLAIN, 20)
+    }
     
     def top = new MainFrame {
         
@@ -19,11 +25,6 @@ object MainWindow extends SimpleSwingApplication {
         
         preferredSize = new Dimension(600, 400)
         
-        // ListView of FSMs
-        var loadedAutomata = Map(): Map[String, File]
-        val listView = new ListView(loadedAutomata.keys.toSeq) {
-            font = new Font("Sans Serif", Font.PLAIN, 20)
-        }
         listView.peer.setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
         
         val scrollPane = new ScrollPane()
@@ -36,6 +37,15 @@ object MainWindow extends SimpleSwingApplication {
                 minimumSize = buttonSize
                 maximumSize = buttonSize
                 preferredSize = buttonSize
+                
+                listenTo(mouse.clicks)
+                reactions += {
+                    case MouseClicked(_, _, _, _, _) => {
+                            val fsmCreationWindow = new FSMCreationWindow()
+                            fsmCreationWindow.addObserver(MainWindow)
+                            fsmCreationWindow.startup(Array())
+                        }
+                }
             }
             contents += new Button("Load") {
                 minimumSize = buttonSize
@@ -46,11 +56,18 @@ object MainWindow extends SimpleSwingApplication {
                 reactions += {
                     case MouseClicked(_, _, _, _, _) =>
                         val chooser = new FileChooser(new File("."))
-                        chooser.title = ""
+                        chooser.title = "Load existing automaton"
+                        chooser.fileFilter = new FileFilter() {
+                            def accept(f: File) =
+                                f.getName.endsWith("dfa.xml") || f.getName.endsWith("nfa.xml") || f.isDirectory()
+                            def getDescription = "DFA or NFA Files"
+                        }
+                        chooser.peer.setAcceptAllFileFilterUsed(false)
+                        
                         val result = chooser.showOpenDialog(null)
                         if (result == FileChooser.Result.Approve) {
                             loadedAutomata += (chooser.selectedFile.getName -> chooser.selectedFile)
-                            listView.listData = loadedAutomata.keys.toSeq
+                            reloadListView
                         }
                 }
             }
@@ -93,5 +110,16 @@ object MainWindow extends SimpleSwingApplication {
             layout(fsmCtrls) = East
         }
     }
+
+    def receiveUpdate(subject: FSMCreationWindow): Unit = {
+        val file = subject.file
+        if (file != null) {
+            loadedAutomata += (file.getName -> file)
+            reloadListView
+        }
+    }
     
+    private def reloadListView = {
+        listView.listData = loadedAutomata.keys.toSeq
+    }
 }

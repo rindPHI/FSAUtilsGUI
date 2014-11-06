@@ -27,7 +27,7 @@ import java.awt.geom.QuadCurve2D
 import scala.swing.Dialog
 import javax.swing.JOptionPane
 import java.awt.Dimension
-import de.dominicscheurer.fsautils.DFA
+import de.dominicscheurer.fsautils._
 import de.dominicscheurer.fsautils.Types._
 import de.dominicscheurer.fsautils.Conversions._
 import scala.util.control.NonFatal
@@ -272,14 +272,23 @@ class FSACanvas extends Panel {
 
         repaint
     }
+    
+    def fsm: Option[FSM] =
+        // If there are less than states * alphabet transitions,
+        // the result cannot be a DFA, so try NFA instead.
+        if (states.size * alphabet.size > edges.size) {
+            nfa
+        } else {
+            dfa match {
+                case None => nfa
+                case Some(dfa) => Some(dfa)
+            }
+        }
+    
+    def nfa: Option[NFA] = None
 
     def dfa: Option[DFA] = {
         try {
-            val alphabet = edges.foldLeft(Set(): Set[Letter])(
-                (set,edge) => edge match {
-                    case (from, label, to) => set + Symbol(label)
-                }): Set[Letter]
-                
             val dfaStates = states.map { 
                 case State(_, _, label, _) => q(label.toInt)
             }: Set[DFAState]
@@ -319,6 +328,12 @@ class FSACanvas extends Panel {
                 None
         }
     }
+    
+    private def alphabet: Set[Letter] =
+        edges.foldLeft(Set(): Set[Letter])(
+            (set,edge) => edge match {
+                case (from, label, to) => set + Symbol(label)
+            })
     
     private def getOuterOval(x: Int, y: Int) =
         new Ellipse2D.Float(

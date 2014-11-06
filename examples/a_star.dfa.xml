@@ -1,0 +1,15 @@
+<dfa>
+  <alphabet>
+    <letter>a</letter>
+  </alphabet>
+  <states>
+    <state>0</state>
+  </states>
+  <initialState>0</initialState>
+  <delta>
+    <transition from="0" trigger="a" to="0"/>
+  </delta>
+  <accepting>
+    <state>0</state>
+  </accepting>
+</dfa>

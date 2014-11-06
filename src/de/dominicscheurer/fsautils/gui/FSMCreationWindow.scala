@@ -23,18 +23,21 @@ import scala.swing._
 import scala.swing.BorderPanel.Position._
 import event._
 import java.awt.{ Color, Graphics2D }
+import java.io.File
+import java.io.PrintWriter
+import javax.swing.filechooser.FileFilter
 
-object FSMCreationWindow extends SimpleSwingApplication {
+class FSMCreationWindow extends SimpleSwingApplication with Subject[FSMCreationWindow] {
     
     var shiftHold = false
+    var file: File = null
+    val canvas = new FSACanvas {
+        preferredSize = new Dimension(500, 500)
+        focusable = true
+    }
     
     def top = new MainFrame {
         title = "A Sample Scala Swing GUI"
-    
-        val canvas = new FSACanvas {
-            preferredSize = new Dimension(500, 500)
-            focusable = true
-        }
     
         contents = new BorderPanel {
             layout(canvas) = Center
@@ -44,11 +47,36 @@ object FSMCreationWindow extends SimpleSwingApplication {
     
         menuBar = new MenuBar {
             contents += new Menu("File") {
-                contents += new MenuItem(Action("Print DFA") {
-                    println(canvas.dfa)
+                contents += new MenuItem(Action("Save File") {
+                    canvas.fsm match {
+                        case None =>
+                        case Some(fsm) => {
+                            val ending = if (fsm.isDFA) ".dfa.xml" else ".nfa.xml"
+                            val chooser = new FileChooser(new File("."))
+                            chooser.fileFilter = new FileFilter() {
+                                def accept(f: File) =
+                                    f.getName.endsWith(ending) || f.isDirectory()
+                                def getDescription =
+                                    if (fsm.isDFA) "DFA Files" else "NFA Files"
+                            }
+                            chooser.title = "Save " + (if (fsm.isDFA) "DFA" else "NFA")
+                            chooser.peer.setAcceptAllFileFilterUsed(false)
+                            
+                            val result = chooser.showOpenDialog(this)
+                            if (result == FileChooser.Result.Approve) {
+                                file =
+                                    if (chooser.selectedFile.getName.endsWith(ending))
+                                        chooser.selectedFile
+                                    else
+                                        new File(chooser.selectedFile.getParent, chooser.selectedFile.getName + ending)
+                                Some(new PrintWriter(file)).foreach{p => p.write(fsm.toPrettyXml); p.close}
+                                notifyObservers
+                            }
+                        }
+                    }
                 })
-                contents += new MenuItem(Action("Exit") {
-                    sys.exit(0)
+                contents += new MenuItem(Action("Close") {
+                    close
                 })
             }
         }
