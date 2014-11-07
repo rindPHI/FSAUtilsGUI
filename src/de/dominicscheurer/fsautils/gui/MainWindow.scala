@@ -87,6 +87,15 @@ object MainWindow extends SimpleSwingApplication with Observer[FSMCreationWindow
                 minimumSize = buttonSize
                 maximumSize = buttonSize
                 preferredSize = buttonSize
+
+                listenTo(mouse.clicks)
+                reactions += {
+                    case MouseClicked(_, _, _, _, _) =>
+                        if (listView.selection.items.size == 1) {
+                            val fsmViewer = new FSMViewer(loadedAutomata(listView.selection.items(0)))
+                            fsmViewer.startup(Array())
+                        }
+                }
             }
             contents += new Button("Edit") {
                 minimumSize = buttonSize
