@@ -31,6 +31,8 @@ import de.dominicscheurer.fsautils._
 import de.dominicscheurer.fsautils.Types._
 import de.dominicscheurer.fsautils.Conversions._
 import scala.util.control.NonFatal
+import scala.swing.event.MousePressed
+import scala.swing.event.MouseDragged
 
 class FSACanvas extends Panel {
     
@@ -61,6 +63,26 @@ class FSACanvas extends Panel {
     val INPUT_HINT_TEXT =
         "When a state is selected, press 'a' to make it accepting and 'i' to make it initial. " +
         "Hold Shift and click on an other state to add a transition."
+        
+    listenTo(mouse.moves)
+    listenTo(mouse.clicks)
+    
+    reactions += {
+        case MouseDragged(src, point, mods) => {
+            val intersStates = statesAtPoint(point)
+            if (notInOuterBorder(point) && intersStates.size == 1)
+                (intersStates head) match {
+                    case State(x, y, label, accepting) =>
+                        val oldState = State(x, y, label, accepting)
+                        val newState = State(point.x, point.y, label, accepting)
+                        states -= oldState
+                        states += newState
+                        checkSelect(point)
+                        if (initialState equals Some(oldState))
+                            initialState = Some(newState)
+                }
+        }
+    }
 
     override def paintComponent(g: Graphics2D) {
         g setColor BORDER_BG_COLOR
@@ -180,10 +202,7 @@ class FSACanvas extends Panel {
 
     def checkState(point: Point) {
         val state = State(point.getX.toInt, point.getY.toInt, nextStateCounter.toString, false)
-        val intersectingStates = ((states - state) filter {
-            case State(otherX: Int, otherY: Int, _, _) =>
-                getOuterOval(state.x, state.y) intersects getOuterOval(otherX, otherY).getBounds2D
-        })
+        val intersectingStates = statesAtPoint(point)
 
         selectedState = None
 
@@ -203,11 +222,7 @@ class FSACanvas extends Panel {
     }
 
     def checkSelect(point: Point) {
-        val state = State(point.getX.toInt, point.getY.toInt, nextStateCounter.toString, false)
-        val intersectingStates = ((states - state) filter {
-            case State(otherX: Int, otherY: Int, _, _) =>
-                getOuterOval(state.x, state.y) intersects getOuterOval(otherX, otherY).getBounds2D
-        })
+        val intersectingStates = statesAtPoint(point)
 
         selectedState = None
 
@@ -221,11 +236,7 @@ class FSACanvas extends Panel {
     }
 
     def checkEdge(point: Point) {
-        val state = State(point.getX.toInt, point.getY.toInt, nextStateCounter.toString, false)
-        val intersectingStates = ((states - state) filter {
-            case State(otherX: Int, otherY: Int, _, _) =>
-                getOuterOval(state.x, state.y) intersects getOuterOval(otherX, otherY).getBounds2D
-        })
+        val intersectingStates = statesAtPoint(point)
 
         selectedState match {
             case None =>
@@ -418,6 +429,14 @@ class FSACanvas extends Panel {
         point.y > BORDER_SIZE + (STATE_DIAMETER / 2) &&
         point.x < size.width - (BORDER_SIZE + (STATE_DIAMETER / 2)) &&
         point.y < size.height - (BORDER_SIZE + (STATE_DIAMETER / 2))
+        
+    private def statesAtPoint(point: Point) = {
+        val state = State(point.getX.toInt, point.getY.toInt, nextStateCounter.toString, false)
+        ((states - state) filter {
+            case State(otherX: Int, otherY: Int, _, _) =>
+                getOuterOval(state.x, state.y) intersects getOuterOval(otherX, otherY).getBounds2D
+        })
+    }
 
     /**
      * Draws an arrow on the given Graphics2D context.
