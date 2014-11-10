@@ -1,16 +1,18 @@
 <nfa>
   <alphabet>
-    <letter>a</letter>
     <letter>b</letter>
+    <letter>a</letter>
   </alphabet>
   <states>
     <state>0</state>
     <state>1</state>
   </states>
-  <initialState>1</initialState>
+  <initialState>0</initialState>
   <delta>
-    <transition from="0" trigger="a" to="0"/>
     <transition from="0" trigger="b" to="1"/>
+    <transition from="0" trigger="a" to="0"/>
   </delta>
-  <accepting> </accepting>
+  <accepting>
+    <state>1</state>
+  </accepting>
 </nfa>

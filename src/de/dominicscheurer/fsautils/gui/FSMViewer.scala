@@ -1,6 +1,7 @@
 package de.dominicscheurer.fsautils.gui
 
 import de.dominicscheurer.fsautils.DFA
+import de.dominicscheurer.fsautils.NFA
 import scala.io.Source._
 import scala.swing._
 import scala.swing.BorderPanel.Position._
@@ -26,7 +27,13 @@ extends SimpleSwingApplication {
         val content = source.mkString
         source.close()
         
-        val dotCode = GraphvizBridge.toDot(DFA.fromXml(XML.loadString(content)))
+        //TODO: Handle NFA Case (e.g. check file ending, add things to graphviz bridge)
+        val dotCode =
+            if (file.getName.endsWith("dfa.xml"))
+                GraphvizBridge.toDot(DFA.fromXml(XML.loadString(content)))
+            else
+                GraphvizBridge.toDot(NFA.fromXml(XML.loadString(content)))
+        
         val tmpInputFile = java.io.File.createTempFile("FSAUtils", ".dot")
         tmpInputFile.deleteOnExit()
         Some(new PrintWriter(tmpInputFile)).foreach{p => p.write(dotCode); p.close}
