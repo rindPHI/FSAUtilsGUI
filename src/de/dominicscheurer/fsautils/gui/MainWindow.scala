@@ -19,6 +19,7 @@
 
 package de.dominicscheurer.fsautils.gui
 
+import scala.io.Source._
 import scala.swing._
 import scala.swing.BorderPanel.Position._
 import java.awt.Font
@@ -27,6 +28,11 @@ import javax.swing.ListSelectionModel
 import java.io.File
 import javax.swing.filechooser.FileFilter
 import scala.swing.event.SelectionChanged
+import de.dominicscheurer.fsautils.DFA
+import de.dominicscheurer.fsautils.NFA
+import scala.xml.XML
+import de.dominicscheurer.fsautils.FSM
+import de.dominicscheurer.fsautils.RegularExpressions._
 
 object MainWindow extends SimpleSwingApplication with Observer[FSMCreationWindow] {
     
@@ -58,13 +64,34 @@ object MainWindow extends SimpleSwingApplication with Observer[FSMCreationWindow
                 //TODO
             })
             contents += new MenuItem(Action("({}) Check for Emptyness") {
-                //TODO
+                val fsm: FSM = getFSM(selectedFile)
+                val result = fsm.isEmpty
+                
+                Dialog.showMessage(this, result toString, "Check for Emptyness")
+                //TODO: Better output format than Dialog box...
             })
             contents += new MenuItem(Action("(=) Check Equivalence") {
-                //TODO
+                getBinaryFSMOpInput(this) match {
+                    case None =>
+                    case Some(fileName) =>
+                        val firstFsm: FSM = getFSM(selectedFile)
+                        val secondFsm: FSM = getFSM(loadedAutomata(fileName))
+                        
+                        val result = (firstFsm == secondFsm)
+                        
+                        Dialog.showMessage(this, result toString, "Check for Equivalence")
+                        //TODO: Better output format than Dialog box...
+                }
             })
             contents += new MenuItem(Action("(RE) Get Regular Rxpression") {
-                //TODO
+                val fsm = getFSM(selectedFile)
+                val re: RE = fsm.asDFA match {
+                    case None => fsm.asNFA.get.toRegExp
+                    case Some(dfa) => dfa.minimize.toRegExp
+                }
+                
+                Dialog.showMessage(this, re.clean.cleanString, "Regular Expression Conversion")
+                //TODO: Better output format than Dialog box...
             })
             contents += new MenuItem(Action("(+) Concatenation") {
                 //TODO
@@ -214,5 +241,27 @@ object MainWindow extends SimpleSwingApplication with Observer[FSMCreationWindow
     
     private def reloadListView = {
         listView.listData = loadedAutomata.keys.toSeq
+    }
+    
+    private def selectedFile =
+        loadedAutomata(listView.selection.items(0))
+    
+    private def getBinaryFSMOpInput(parent: Component) =
+        Dialog.showInput(
+            parent,
+            message = "Choose another automaton",
+            title = "Binary operation on automata",
+            entries = loadedAutomata.keys.toSeq,
+            initial = loadedAutomata.keys.toSeq.head)
+        
+    private def getFSM(file: File): FSM = {
+        val source = fromFile(file)
+        val content = source.mkString
+        source.close()
+        
+        if (file.getName.endsWith("dfa.xml"))
+            DFA.fromXml(XML.loadString(content))
+        else
+            NFA.fromXml(XML.loadString(content))
     }
 }
