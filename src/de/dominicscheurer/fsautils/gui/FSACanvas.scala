@@ -75,11 +75,7 @@ class FSACanvas extends Panel {
                     case State(x, y, label, accepting) =>
                         val oldState = State(x, y, label, accepting)
                         val newState = State(point.x, point.y, label, accepting)
-                        states -= oldState
-                        states += newState
-                        checkSelect(point)
-                        if (initialState equals Some(oldState))
-                            initialState = Some(newState)
+                        replaceState(oldState, newState)
                 }
         }
     }
@@ -263,11 +259,7 @@ class FSACanvas extends Panel {
                 val oldState = State(x, y, label, accepting)
                 val newState = State(x, y, label, !accepting)
 
-                if (initialState equals Some(oldState))
-                    initialState = Some(newState)
-
-                states -= oldState
-                states += newState
+                replaceState(oldState, newState)
                 selectedState = Some(newState)
             }
         }
@@ -436,6 +428,36 @@ class FSACanvas extends Panel {
             case State(otherX: Int, otherY: Int, _, _) =>
                 getOuterOval(state.x, state.y) intersects getOuterOval(otherX, otherY).getBounds2D
         })
+    }
+        
+    private def replaceState(oldS: State, newS: State) = {
+        states -= oldS
+        states += newS
+        
+        initialState match {
+            case None =>
+            case Some(initialS) =>
+                if (initialS equals oldS)
+                    initialState = Some(newS)
+        }
+        
+        selectedState match {
+            case None =>
+            case Some(selectedS) =>
+                if (selectedS equals oldS)
+                    selectedState = Some(newS)
+        }
+        
+        edges = edges.map(
+            edge => edge match {
+                case (from,label,to) =>
+                    val newFrom = if (from equals oldS) newS else from
+                    val newTo = if (to equals oldS) newS else to
+                    (newFrom,label,newTo)
+            }
+        )
+        
+        repaint
     }
 
     /**
