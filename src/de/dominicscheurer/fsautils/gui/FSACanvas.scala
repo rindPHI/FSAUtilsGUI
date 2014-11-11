@@ -242,7 +242,7 @@ class FSACanvas extends Panel {
 
         } else {
             val intersectingEdges = edgesAtPoint(point)
-            if (intersectingEdges.size == 1) {
+            if (intersectingEdges.size > 0) {
                 
                 selectedEdge = Some(intersectingEdges head)
                 
