@@ -107,6 +107,8 @@ class FSMCreationWindow extends SimpleSwingApplication with Subject[FSMCreationW
                 canvas checkInitial
             case KeyReleased(_, Key.Delete, _, _) =>
                 canvas checkDelete
+            case KeyReleased(_, Key.F2, _, _) =>
+                canvas checkRename
             case KeyReleased(_, Key.Shift, _, _) =>
                 shiftHold = false
             case KeyPressed(_, Key.Shift, _, _) =>

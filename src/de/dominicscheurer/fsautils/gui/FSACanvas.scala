@@ -52,6 +52,8 @@ class FSACanvas extends Panel {
     val ACCPT_STATE_INNERST_DIAMETER = 20
     val BORDER_SIZE = STATE_DIAMETER
     
+    val EDGE_SELECT_PRECISION = 0.07
+    
     val STD_FG_COLOR = Color.BLACK
     val SELECTED_FG_COLOR = Color.BLUE
     val STD_BG_COLOR = Color.WHITE
@@ -61,10 +63,10 @@ class FSACanvas extends Panel {
     
     val STD_FONT = new Font("SansSerif", Font.PLAIN, 20)
     val HINT_FONT = new Font("SansSerif", Font.PLAIN, 10)
-    def INPUT_HINT_TEXT_POS(_size: Dimension) = (20, _size.height - 10)
+    def INPUT_HINT_TEXT_POS(_size: Dimension) = (70, _size.height - 10)
     val INPUT_HINT_TEXT =
-        "When a state is selected, press 'a' to make it accepting and 'i' to make it initial. " +
-        "Hold Shift and click on an other state to add a transition."
+        "Double click: Add state | Shift-Click: Add transition | i: Make initial | a: Make accepting " +
+        "| F2: Rename | Del: Remove"
         
     listenTo(mouse.moves)
     listenTo(mouse.clicks)
@@ -327,6 +329,47 @@ class FSACanvas extends Panel {
         repaint
     }
     
+    def checkRename = {
+        def getNewName =
+            Dialog.showInput(
+                this,
+                "Enter new label",
+                title="Renaming Action",
+                initial="")
+        
+        selectedState match {
+            case None =>
+            case Some(State(x,y,l,a)) => {
+                getNewName match {
+                    case None =>
+                    case Some(newLabel) =>
+                        val oldS = State(x,y,l,a)
+                        val newS = State(x,y,newLabel,a)
+                        
+                        replaceState(oldS, newS)
+                        selectedState = Some(newS)
+                }
+            }
+        }
+        
+        selectedEdge match {
+            case None =>
+            case Some((f,l,t)) => {
+                getNewName match {
+                    case None =>
+                    case Some(newLabel) =>
+                        val oldE = (f,l,t)
+                        val newE = (f,newLabel,t)
+                        
+                        replaceEdge(oldE, newE)
+                        selectedEdge = Some(oldE)
+                }
+            }
+        }
+
+        repaint
+    }
+    
     def fsm: Option[FSM] =
         // If there are less than states * alphabet transitions,
         // the result cannot be a DFA, so try NFA instead.
@@ -455,23 +498,30 @@ class FSACanvas extends Panel {
         val state = State(point.getX.toInt, point.getY.toInt, nextStateCounter.toString, false)
         ((states - state) filter {
             case State(otherX: Int, otherY: Int, _, _) =>
-                getOuterOval(state.x, state.y) intersects getOuterOval(otherX, otherY).getBounds2D
+                getOuterOval(otherX, otherY) contains point
         })
     }
         
     private def edgesAtPoint(point: Point) = {
+        val r = STATE_DIAMETER / 2
+                    
         (edges filter {
             case (from,_,to) =>
                 if (from equals to)
-                    getOuterOval(from.x, from.y) contains point
+                    getInnerOval(from.x + r, from.y - r) contains point
                 else {
-                    val k1 = (point.x - from.x) / (to.x - from.x)
-                    val k2 = (point.y - from.y) / (to.y - from.y)
+                    val k1 = (point.x - from.x).toDouble / (to.x - from.x).toDouble
+                    val k2 = (point.y - from.y).toDouble / (to.y - from.y).toDouble
                     
-                    k1 == k2
+                    Math.abs(k1 - k2) < EDGE_SELECT_PRECISION &&
+                        inUnitInterval(k1) &&
+                        inUnitInterval(k2)
                 }
         })
     }
+    
+    private def inUnitInterval(k: Double) =
+        k >= 0 && k <= 1
         
     private def replaceState(oldS: State, newS: State) = {
         states -= oldS
@@ -499,6 +549,20 @@ class FSACanvas extends Panel {
                     (newFrom,label,newTo)
             }
         )
+        
+        repaint
+    }
+    
+    private def replaceEdge(oldE: (State,String,State), newE: (State,String,State)) = {
+        edges -= oldE
+        edges += newE
+        
+        selectedEdge match {
+            case None =>
+            case Some(selectedE) =>
+                if (selectedE equals oldE)
+                    selectedEdge = Some(newE)
+        }
         
         repaint
     }
