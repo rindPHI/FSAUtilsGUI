@@ -34,7 +34,7 @@ import scala.util.control.NonFatal
 import scala.swing.event.MousePressed
 import scala.swing.event.MouseDragged
 
-class FSACanvas extends Panel {
+class FSMCanvas extends Panel {
     
     type DFAState = de.dominicscheurer.fsautils.Types.State
 

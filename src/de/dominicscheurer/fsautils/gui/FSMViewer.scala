@@ -44,7 +44,7 @@ extends SimpleSwingApplication {
     val SCALE_FACTOR = 150
     
     var shiftHold = false
-    val canvas = new FSACanvas {
+    val canvas = new FSMCanvas {
         preferredSize = new Dimension(500, 500)
         focusable = true
     }

@@ -31,7 +31,7 @@ class FSMCreationWindow extends SimpleSwingApplication with Subject[FSMCreationW
     
     var shiftHold = false
     var file: File = null
-    val canvas = new FSACanvas {
+    val canvas = new FSMCanvas {
         preferredSize = new Dimension(500, 500)
         focusable = true
     }
