@@ -40,6 +40,7 @@ class FSACanvas extends Panel {
 
     var states = Set[State]()
     var selectedState = None: Option[State]
+    var selectedEdge = None: Option[(State, String, State)]
     var initialState = None: Option[State]
     var edges = Set[(State, String, State)]()
 
@@ -52,6 +53,7 @@ class FSACanvas extends Panel {
     val BORDER_SIZE = STATE_DIAMETER
     
     val STD_FG_COLOR = Color.BLACK
+    val SELECTED_FG_COLOR = Color.BLUE
     val STD_BG_COLOR = Color.WHITE
     val BORDER_BG_COLOR = Color.LIGHT_GRAY
     val IMPOSSIBLE_HINT_COLOR = Color.RED
@@ -76,6 +78,7 @@ class FSACanvas extends Panel {
                         val oldState = State(x, y, label, accepting)
                         val newState = State(point.x, point.y, label, accepting)
                         replaceState(oldState, newState)
+                        selectedState = Some(newState)
                 }
         }
     }
@@ -98,6 +101,15 @@ class FSACanvas extends Panel {
                 case (from, label, to) => {
                     val r = STATE_DIAMETER / 2
 
+                    selectedEdge match {
+                        case None => g setFont STD_FONT
+                        case Some(otherEdge) =>
+                            if (otherEdge equals edge)
+                                g setColor SELECTED_FG_COLOR
+                            else
+                                g setColor STD_FG_COLOR
+                    }
+                    
                     if (!(from equals to)) {
                         var (x, y, xx, yy) = (from.x, from.y, to.x, to.y)
 
@@ -162,7 +174,7 @@ class FSACanvas extends Panel {
                 case None =>
                 case Some(otherState) =>
                     if (state equals otherState)
-                        g setColor Color.BLUE
+                        g setColor SELECTED_FG_COLOR
             }
 
             state match {
@@ -218,14 +230,21 @@ class FSACanvas extends Panel {
     }
 
     def checkSelect(point: Point) {
-        val intersectingStates = statesAtPoint(point)
-
         selectedState = None
+        selectedEdge = None
 
+        val intersectingStates = statesAtPoint(point)
         if (intersectingStates.size == 1) {
 
             selectedState = Some(intersectingStates head)
 
+        } else {
+            val intersectingEdges = edgesAtPoint(point)
+            if (intersectingEdges.size == 1) {
+                
+                selectedEdge = Some(intersectingEdges head)
+                
+            }
         }
 
         repaint
@@ -281,9 +300,10 @@ class FSACanvas extends Panel {
             case None =>
             case Some(state) => {
                 selectedState = None
+                selectedEdge = None
                 states -= state
                 edges = edges.filterNot{
-                    case (from, trigger, to) =>
+                    case (from, _, to) =>
                         (from.equals(state) || to.equals(state))
                 }
                 initialState match {
@@ -292,6 +312,15 @@ class FSACanvas extends Panel {
                         if (state equals otherState)
                             initialState = None
                 }
+            }
+        }
+        
+        selectedEdge match {
+            case None =>
+            case Some(edge) => {
+                selectedState = None
+                selectedEdge = None
+                edges -= edge
             }
         }
 
@@ -427,6 +456,20 @@ class FSACanvas extends Panel {
         ((states - state) filter {
             case State(otherX: Int, otherY: Int, _, _) =>
                 getOuterOval(state.x, state.y) intersects getOuterOval(otherX, otherY).getBounds2D
+        })
+    }
+        
+    private def edgesAtPoint(point: Point) = {
+        (edges filter {
+            case (from,_,to) =>
+                if (from equals to)
+                    getOuterOval(from.x, from.y) contains point
+                else {
+                    val k1 = (point.x - from.x) / (to.x - from.x)
+                    val k2 = (point.y - from.y) / (to.y - from.y)
+                    
+                    k1 == k2
+                }
         })
     }
         
