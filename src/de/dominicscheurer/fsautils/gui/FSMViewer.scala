@@ -21,6 +21,8 @@ package de.dominicscheurer.fsautils.gui
 
 import de.dominicscheurer.fsautils.DFA
 import de.dominicscheurer.fsautils.NFA
+import de.dominicscheurer.fsautils.Types._
+
 import scala.io.Source._
 import scala.swing._
 import scala.swing.BorderPanel.Position._
@@ -30,10 +32,23 @@ import java.io.PrintWriter
 import scala.xml.XML
 import javax.swing.ImageIcon
 import javax.swing.JLabel
+import javax.swing.filechooser.FileFilter
+import event._
 
 class FSMViewer(file: File)
 extends SimpleSwingApplication {
 
+    type MutableSet[A] = scala.collection.mutable.Set[A]
+    def MutableSet[A](): MutableSet[A] = scala.collection.mutable.Set[A]()
+    
+    val SCALE_FACTOR = 150
+    
+    var shiftHold = false
+    val canvas = new FSACanvas {
+        preferredSize = new Dimension(500, 500)
+        focusable = true
+    }
+    
     def top = new MainFrame {
         preferredSize = new Dimension(600, 400)
         title = file.getName
@@ -54,26 +69,85 @@ extends SimpleSwingApplication {
         
         val tmpInputFile = java.io.File.createTempFile("FSAUtils", ".dot")
         tmpInputFile.deleteOnExit()
-        Some(new PrintWriter(tmpInputFile)).foreach{p => p.write(dotCode); p.close}
+        Some(new PrintWriter(tmpInputFile)).foreach{p => p.write(dotCode); p.close}  
         
-        
-        val tmpOutputFile = java.io.File.createTempFile("FSAUtils", ".png")
+        val tmpOutputFile = java.io.File.createTempFile("FSAUtils", ".plain")
         tmpOutputFile.deleteOnExit()
         
         if (Seq("dot", "-V").! == 0) {
         
-            if (Seq("dot", "-Tpng", "-o", tmpOutputFile.toString, tmpInputFile.toString).! == 0) {
+            if (Seq("dot", "-Tplain", "-o", tmpOutputFile.toString, tmpInputFile.toString).! == 0) {
                 
-                val editorPane = new Label
-                editorPane.icon = new ImageIcon(tmpOutputFile.toString)
+                val plainOutput = fromFile(tmpOutputFile)
                 
-                val panel = new BorderPanel {
-                    layout(editorPane) = Center
+                var states = MutableSet[State]()
+                var edges = MutableSet[(State, String, State)]()
+                var initialState = None: Option[State]
+                
+                plainOutput.getLines().foreach {
+                    line => parseLine(line, states, edges, initialState) match {
+                        case None =>
+                        case Some(state) => initialState = Some(state)
+                    }
                 }
                 
+                plainOutput.close()
+                
+                canvas.states = Set() ++ states
+                canvas.edges = Set() ++ edges
+                canvas.initialState = initialState
+                
                 val scrollPane = new ScrollPane()
-                scrollPane.contents = panel
+                scrollPane.contents = new BorderPanel {
+                    layout(canvas) = Center
+                }
                 contents = scrollPane
+                
+                menuBar = new MenuBar {
+                    contents += new Menu("File") {
+                        contents += new MenuItem(Action("Save File") {
+                            canvas.fsm match {
+                                case None =>
+                                case Some(fsm) => {
+                                    //TODO
+                                }
+                            }
+                        })
+                        contents += new MenuItem(Action("Close") {
+                            close
+                        })
+                    }
+                }
+            
+                // specify which Components produce events of interest
+                listenTo(canvas.mouse.clicks)
+                listenTo(canvas.keys)
+            
+                // react to events
+                reactions += {
+                    case MouseClicked(_, point, _, clicks, _) =>
+                        if (clicks == 1 && shiftHold) {
+                            shiftHold = false // Hack due to input prompt, otherwise
+                                              // selection does not get forgotten
+                            canvas checkEdge point
+                        }
+                        else if (clicks == 1 && !shiftHold)
+                            canvas checkSelect point
+                        else if (clicks == 2)
+                            canvas checkState point
+                    case KeyTyped(_, 'a', _, _) =>
+                        canvas checkAccepting
+                    case KeyTyped(_, 'i', _, _) =>
+                        canvas checkInitial
+                    case KeyReleased(_, Key.Delete, _, _) =>
+                        canvas checkDelete
+                    case KeyReleased(_, Key.F2, _, _) =>
+                        canvas checkRename
+                    case KeyReleased(_, Key.Shift, _, _) =>
+                        shiftHold = false
+                    case KeyPressed(_, Key.Shift, _, _) =>
+                        shiftHold = true
+                }
                 
             } else {
                 //TODO: Error message
@@ -92,4 +166,32 @@ extends SimpleSwingApplication {
         }
     }
     
+    /**
+     * @return The initial state of the FSM or None. States and edges
+     *   are directly manipulated.
+     */
+    private def parseLine(
+            line: String,
+            states: MutableSet[State],
+            edges: MutableSet[(State, String, State)],
+            initialState: Option[State]): Option[State] = {
+        val tokens = line.split(' ')
+        if ((tokens(0) equals "node") && !(tokens(1) equals "DUMMY"))
+            states += State(
+                    Math.round((tokens(2).toFloat * SCALE_FACTOR)).toInt + canvas.BORDER_SIZE,
+                    Math.round((tokens(3).toFloat * SCALE_FACTOR)).toInt + canvas.BORDER_SIZE,
+                    tokens(1),
+                    tokens(8) equals "doublecircle")
+        else if ((tokens(0) equals "edge") && !(tokens(1) equals "DUMMY"))
+            edges +=
+                (
+                    ((states.find { case State(_,_,l,_) => (l equals tokens(1)) }).get,
+                    tokens(tokens.length - 5),
+                    (states.find { case State(_,_,l,_) => (l equals tokens(2)) }).get)
+                )
+        else if ((tokens(0) equals "edge") && (tokens(1) equals "DUMMY"))
+            return Some((states.find { case State(_,_,l,_) => (l equals tokens(2)) }).get)
+        
+        None
+    }
 }
