@@ -102,7 +102,7 @@ object MainWindow extends SimpleSwingApplication with Observer[FSMCreationWindow
                             listView.listData = (listView.listData.toSet - listView.selection.items(0)).toSeq
                 }
             }
-            contents += new Button("View") {
+            contents += new Button("Edit") {
                 minimumSize = buttonSize
                 maximumSize = buttonSize
                 preferredSize = buttonSize
@@ -116,7 +116,7 @@ object MainWindow extends SimpleSwingApplication with Observer[FSMCreationWindow
                         }
                 }
             }
-            contents += new Button("Edit") {
+            contents += new Button("Edit XML") {
                 minimumSize = buttonSize
                 maximumSize = buttonSize
                 preferredSize = buttonSize
