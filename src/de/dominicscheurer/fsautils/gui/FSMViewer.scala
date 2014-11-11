@@ -35,7 +35,7 @@ import javax.swing.JLabel
 import javax.swing.filechooser.FileFilter
 import event._
 
-class FSMViewer(file: File)
+class FSMViewer(var file: File)
 extends SimpleSwingApplication {
 
     type MutableSet[A] = scala.collection.mutable.Set[A]
@@ -76,11 +76,38 @@ extends SimpleSwingApplication {
         
         menuBar = new MenuBar {
             contents += new Menu("File") {
-                contents += new MenuItem(Action("Save File") {
+                contents += new MenuItem(Action("Save") {
                     canvas.fsm match {
                         case None =>
                         case Some(fsm) => {
                             Some(new PrintWriter(file)).foreach{p => p.write(fsm.toPrettyXml); p.close}
+                        }
+                    }
+                })
+                contents += new MenuItem(Action("Save Copy As") {
+                    canvas.fsm match {
+                        case None =>
+                        case Some(fsm) => {
+                            val ending = if (fsm.isDFA) ".dfa.xml" else ".nfa.xml"
+                            val chooser = new FileChooser(new File("."))
+                            chooser.fileFilter = new FileFilter() {
+                                def accept(f: File) =
+                                    f.getName.endsWith(ending) || f.isDirectory()
+                                def getDescription =
+                                    if (fsm.isDFA) "DFA Files" else "NFA Files"
+                            }
+                            chooser.title = "Save " + (if (fsm.isDFA) "DFA" else "NFA")
+                            chooser.peer.setAcceptAllFileFilterUsed(false)
+                            
+                            val result = chooser.showOpenDialog(this)
+                            if (result == FileChooser.Result.Approve) {
+                                file =
+                                    if (chooser.selectedFile.getName.endsWith(ending))
+                                        chooser.selectedFile
+                                    else
+                                        new File(chooser.selectedFile.getParent, chooser.selectedFile.getName + ending)
+                                Some(new PrintWriter(file)).foreach{p => p.write(fsm.toPrettyXml); p.close}
+                            }
                         }
                     }
                 })
