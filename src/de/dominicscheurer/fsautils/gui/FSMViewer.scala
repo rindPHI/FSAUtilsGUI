@@ -46,7 +46,6 @@ extends SimpleSwingApplication {
         val content = source.mkString
         source.close()
         
-        //TODO: Handle NFA Case (e.g. check file ending, add things to graphviz bridge)
         val dotCode =
             if (file.getName.endsWith("dfa.xml"))
                 GraphvizBridge.toDot(DFA.fromXml(XML.loadString(content)))
