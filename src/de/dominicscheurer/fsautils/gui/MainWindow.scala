@@ -26,6 +26,7 @@ import scala.swing.event.MouseClicked
 import javax.swing.ListSelectionModel
 import java.io.File
 import javax.swing.filechooser.FileFilter
+import scala.swing.event.SelectionChanged
 
 object MainWindow extends SimpleSwingApplication with Observer[FSMCreationWindow] {
     
@@ -35,7 +36,7 @@ object MainWindow extends SimpleSwingApplication with Observer[FSMCreationWindow
     }
     
     def top = new MainFrame {
-        
+            
         // Title
         title = "FSM Utilities"
         val titleLabel = new Label("FSM Manager") {
@@ -48,6 +49,70 @@ object MainWindow extends SimpleSwingApplication with Observer[FSMCreationWindow
         
         val scrollPane = new ScrollPane()
         scrollPane.contents = listView
+        
+        menuBar = new MenuBar
+        
+        // Menu Items
+        val fsmMenu = new Menu("FSM Actions") {
+            contents += new MenuItem(Action("Check word acceptance") {
+                //TODO
+            })
+            contents += new MenuItem(Action("({}) Check for Emptyness") {
+                //TODO
+            })
+            contents += new MenuItem(Action("(=) Check Equivalence") {
+                //TODO
+            })
+            contents += new MenuItem(Action("(RE) Get Regular Rxpression") {
+                //TODO
+            })
+            contents += new MenuItem(Action("(+) Concatenation") {
+                //TODO
+            })
+            contents += new MenuItem(Action("(&) Intersection") {
+                //TODO
+            })
+            contents += new MenuItem(Action("(|) Union") {
+                //TODO
+            })
+            contents += new MenuItem(Action("(\\) Difference") {
+                //TODO
+            })
+            contents += new MenuItem(Action("(*) Star") {
+                //TODO
+            })
+        }
+        
+        val dfaMenu = new Menu("DFA Actions") {
+            contents += new MenuItem(Action("Minimize") {
+                //TODO
+            })
+        }
+        
+        val nfaMenu = new Menu("NFA Actions") {
+            contents += new MenuItem(Action("Determinize") {
+                //TODO
+            })
+        }
+        
+        listView.listenTo(listView.selection)
+        listView.reactions += {
+            case SelectionChanged(_) => {
+                menuBar.contents.clear
+                
+                if (listView.selection.items.size == 1) {
+                    menuBar.contents += fsmMenu
+                    
+                    if (listView.selection.items(0).endsWith("dfa.xml"))
+                        menuBar.contents += dfaMenu
+                    else if (listView.selection.items(0).endsWith("nfa.xml"))
+                        menuBar.contents += nfaMenu
+                }
+                
+                pack
+                repaint
+            }
+        }
         
         // FSM List Controls
         val buttonSize = new Dimension(130,50)
