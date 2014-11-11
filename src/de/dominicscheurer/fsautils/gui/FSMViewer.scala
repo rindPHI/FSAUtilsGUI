@@ -74,6 +74,22 @@ extends SimpleSwingApplication {
         val tmpOutputFile = java.io.File.createTempFile("FSAUtils", ".plain")
         tmpOutputFile.deleteOnExit()
         
+        menuBar = new MenuBar {
+            contents += new Menu("File") {
+                contents += new MenuItem(Action("Save File") {
+                    canvas.fsm match {
+                        case None =>
+                        case Some(fsm) => {
+                            Some(new PrintWriter(file)).foreach{p => p.write(fsm.toPrettyXml); p.close}
+                        }
+                    }
+                })
+                contents += new MenuItem(Action("Close") {
+                    close
+                })
+            }
+        }
+        
         if (Seq("dot", "-V").! == 0) {
         
             if (Seq("dot", "-Tplain", "-o", tmpOutputFile.toString, tmpInputFile.toString).! == 0) {
@@ -103,22 +119,6 @@ extends SimpleSwingApplication {
                 }
                 contents = scrollPane
                 
-                menuBar = new MenuBar {
-                    contents += new Menu("File") {
-                        contents += new MenuItem(Action("Save File") {
-                            canvas.fsm match {
-                                case None =>
-                                case Some(fsm) => {
-                                    //TODO
-                                }
-                            }
-                        })
-                        contents += new MenuItem(Action("Close") {
-                            close
-                        })
-                    }
-                }
-            
                 // specify which Components produce events of interest
                 listenTo(canvas.mouse.clicks)
                 listenTo(canvas.keys)
@@ -155,14 +155,6 @@ extends SimpleSwingApplication {
             
         } else {
             //TODO: Message: Not dot found
-        }
-        
-        menuBar = new MenuBar {
-            contents += new Menu("File") {
-                contents += new MenuItem(Action("Close") {
-                    close
-                })
-            }
         }
     }
     
