@@ -70,17 +70,17 @@
     	</scalac>
     </target>
 	
-	<target name="package" depends="build">
-		<manifestclasspath property="manifest.cp" jarfile="${build-lib.dir}/FSAUtils_GUI.jar">
-			<classpath refid="build.classpath"/>
-		</manifestclasspath>
-		
+	<target name="package" depends="build">		
         <jar destfile="${build-lib.dir}/FSAUtils_GUI.jar">
             <fileset dir="${build.dir}"/>
             <fileset dir="." includes="LICENSE"/>
+        	
             <zipfileset includes="**/*.class" src="${fsautils.file.name}"/>
+            <zipfileset includes="**/*.class" src="${scala-library.jar}"/>
+            <zipfileset includes="**/*.class" src="${scala-xml.jar}"/>
+            <zipfileset includes="**/*.class" src="${scala-swing.jar}"/>
+        	
             <manifest>
-              <attribute name="Class-Path" value=". ${manifest.cp}"/>
               <attribute
               	name="Main-Class"
                 value="de.dominicscheurer.fsautils.gui.MainWindow"/>
