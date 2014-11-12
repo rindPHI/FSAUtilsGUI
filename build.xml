@@ -8,13 +8,6 @@
 	<property name="build.dir" value="build"/>
     <property name="build-lib.dir" value="lib"/>
 	<property name="fsautils.file.name" value="FSAUtils-1.1-beta.jar"/>
-	
-    <path id="scala.libraries">
-        <pathelement location="${env.SCALA_HOME}/lib/scala-library.jar"/>
-        <pathelement location="${env.SCALA_HOME}/lib/scala-reflect.jar"/>
-        <pathelement location="${env.SCALA_HOME}/lib/scala-actors_*.jar"/>
-        <pathelement location="${env.SCALA_HOME}/lib/scala-swing_*.jar"/>
-    </path>
     
     <target name="dl_FSAUtils">
         <get src="https://github.com/rindPHI/FSAUtils/releases/download/v1.1-beta/FSAUtils.jar" 
@@ -77,11 +70,21 @@
     	</scalac>
     </target>
 	
-    <target name="package" depends="build">
+	<target name="package" depends="build">
+		<manifestclasspath property="manifest.cp" jarfile="${build-lib.dir}/FSAUtils_GUI.jar">
+			<classpath refid="build.classpath"/>
+		</manifestclasspath>
+		
         <jar destfile="${build-lib.dir}/FSAUtils_GUI.jar">
             <fileset dir="${build.dir}"/>
             <fileset dir="." includes="LICENSE"/>
             <zipfileset includes="**/*.class" src="${fsautils.file.name}"/>
+            <manifest>
+              <attribute name="Class-Path" value=". ${manifest.cp}"/>
+              <attribute
+              	name="Main-Class"
+                value="de.dominicscheurer.fsautils.gui.MainWindow"/>
+            </manifest>
         </jar>
         <jar destfile="${build-lib.dir}/FSAUtils_GUI.src.jar">
             <fileset dir="${src.dir}" includes="**/*.scala"/>
