@@ -19,20 +19,23 @@
 
 package de.dominicscheurer.fsautils.gui
 
+import de.dominicscheurer.fsautils.DFA
+import de.dominicscheurer.fsautils.NFA
+import de.dominicscheurer.fsautils.FSM
+import de.dominicscheurer.fsautils.RegularExpressions._
+
 import scala.io.Source._
 import scala.swing._
 import scala.swing.BorderPanel.Position._
-import java.awt.Font
 import scala.swing.event.MouseClicked
-import javax.swing.ListSelectionModel
-import java.io.File
-import javax.swing.filechooser.FileFilter
 import scala.swing.event.SelectionChanged
-import de.dominicscheurer.fsautils.DFA
-import de.dominicscheurer.fsautils.NFA
 import scala.xml.XML
-import de.dominicscheurer.fsautils.FSM
-import de.dominicscheurer.fsautils.RegularExpressions._
+
+import java.awt.Font
+import java.io.File
+import java.io.PrintWriter
+import javax.swing.filechooser.FileFilter
+import javax.swing.ListSelectionModel
 
 object MainWindow extends SimpleSwingApplication with Observer[FSMCreationWindow] {
     
@@ -61,26 +64,52 @@ object MainWindow extends SimpleSwingApplication with Observer[FSMCreationWindow
         // Menu Items
         val fsmMenu = new Menu("FSM Actions") {
             contents += new MenuItem(Action("Check word acceptance") {
-                //TODO
+                Dialog.showInput(
+                    this,
+                    "Enter the word to check.",
+                    title = "Word acceptance check",
+                    initial = "") match {
+                        case None =>
+                        case Some(word) =>
+                            val fsm: FSM = getFSM(selectedFile)
+                            val result = fsm.accepts(word)
+                            
+                            Dialog.showMessage(
+                                this,
+                                "The automaton " + selectedFile.getName +
+                                (if (result) " DOES" else " DOES NOT") +
+                                " accept the word '" +
+                                word + "'.",
+                                "Word acceptance check")
+                    }
             })
             contents += new MenuItem(Action("({}) Check for Emptyness") {
                 val fsm: FSM = getFSM(selectedFile)
                 val result = fsm.isEmpty
                 
-                Dialog.showMessage(this, result toString, "Check for Emptyness")
-                //TODO: Better output format than Dialog box...
+                Dialog.showMessage(
+                    this,
+                    "The automaton " + selectedFile.getName +
+                    (if (result) " IS" else " IS NOT") + " empty.",
+                    "Check for Emptyness")
             })
             contents += new MenuItem(Action("(=) Check Equivalence") {
                 getBinaryFSMOpInput(this) match {
                     case None =>
                     case Some(fileName) =>
-                        val firstFsm: FSM = getFSM(selectedFile)
-                        val secondFsm: FSM = getFSM(loadedAutomata(fileName))
+                        val (firstFsm,secondFsm) =
+                            adjustAlphabets(
+                                    getFSM(selectedFile),
+                                    getFSM(loadedAutomata(fileName)))
                         
                         val result = (firstFsm == secondFsm)
                         
-                        Dialog.showMessage(this, result toString, "Check for Equivalence")
-                        //TODO: Better output format than Dialog box...
+                        Dialog.showMessage(
+                            this,
+                            "The automaton " + selectedFile.getName +
+                            (if (result) " EQUALS" else " DOES NOT EQUAL") +
+                            " the automaton " + fileName + ".",
+                            "Check for Equivalence")
                 }
             })
             contents += new MenuItem(Action("(RE) Get Regular Rxpression") {
@@ -90,35 +119,81 @@ object MainWindow extends SimpleSwingApplication with Observer[FSMCreationWindow
                     case Some(dfa) => dfa.minimize.toRegExp
                 }
                 
-                Dialog.showMessage(this, re.clean.cleanString, "Regular Expression Conversion")
-                //TODO: Better output format than Dialog box...
+                Dialog.showInput(
+                        this,
+                        "This is the generated Regular Expression",
+                        "Regular Expression Conversion",
+                        initial = re.clean.cleanString)
             })
             contents += new MenuItem(Action("(+) Concatenation") {
-                //TODO
+                getBinaryFSMOpInput(this) match {
+                    case None =>
+                    case Some(fileName) =>
+                        val (firstFsm,secondFsm) =
+                            adjustAlphabets(
+                                    getFSM(selectedFile),
+                                    getFSM(loadedAutomata(fileName)))
+                        
+                        val result = (firstFsm ++ secondFsm)
+                        showFSM(result)
+                }
             })
             contents += new MenuItem(Action("(&) Intersection") {
-                //TODO
+                getBinaryFSMOpInput(this) match {
+                    case None =>
+                    case Some(fileName) =>
+                        val (firstFsm,secondFsm) =
+                            adjustAlphabets(
+                                    getFSM(selectedFile),
+                                    getFSM(loadedAutomata(fileName)))
+                        
+                        val result = (firstFsm & secondFsm)
+                        showFSM(result)
+                }
             })
             contents += new MenuItem(Action("(|) Union") {
-                //TODO
+                getBinaryFSMOpInput(this) match {
+                    case None =>
+                    case Some(fileName) =>
+                        val (firstFsm,secondFsm) =
+                            adjustAlphabets(
+                                    getFSM(selectedFile),
+                                    getFSM(loadedAutomata(fileName)))
+                        
+                        val result = (firstFsm | secondFsm)
+                        showFSM(result)
+                }
             })
             contents += new MenuItem(Action("(\\) Difference") {
-                //TODO
+                getBinaryFSMOpInput(this) match {
+                    case None =>
+                    case Some(fileName) =>
+                        val (firstFsm,secondFsm) =
+                            adjustAlphabets(
+                                    getFSM(selectedFile),
+                                    getFSM(loadedAutomata(fileName)))
+                        
+                        val result = (firstFsm \ secondFsm)
+                        showFSM(result)
+                }
             })
             contents += new MenuItem(Action("(*) Star") {
-                //TODO
+                val fsm = getFSM(selectedFile)
+                showFSM(fsm*)
             })
         }
         
         val dfaMenu = new Menu("DFA Actions") {
             contents += new MenuItem(Action("Minimize") {
-                //TODO
+                val dfa = getFSM(selectedFile).asDFA.get
+                showFSM(dfa minimize)
             })
         }
         
         val nfaMenu = new Menu("NFA Actions") {
             contents += new MenuItem(Action("Determinize") {
-                //TODO
+                val nfa = getFSM(selectedFile).asNFA.get
+                showFSM(nfa toDFA)
             })
         }
         
@@ -254,6 +329,13 @@ object MainWindow extends SimpleSwingApplication with Observer[FSMCreationWindow
             entries = loadedAutomata.keys.toSeq,
             initial = loadedAutomata.keys.toSeq.head)
         
+    private def adjustAlphabets(fsm1: FSM, fsm2: FSM): (FSM,FSM) = {
+        val fsm1A = fsm1.adjustAlphabet(fsm2)
+        val fsm2A = fsm2.adjustAlphabet(fsm1)
+        
+        (fsm1A -> fsm2A)
+    }
+            
     private def getFSM(file: File): FSM = {
         val source = fromFile(file)
         val content = source.mkString
@@ -263,5 +345,16 @@ object MainWindow extends SimpleSwingApplication with Observer[FSMCreationWindow
             DFA.fromXml(XML.loadString(content))
         else
             NFA.fromXml(XML.loadString(content))
+    }
+    
+    private def showFSM(fsm: FSM) = {
+        val xmlCode = fsm.toPrettyXml.toString
+        
+        val tmpFile = java.io.File.createTempFile("FSAUtils", if (fsm.isDFA) ".dfa.xml" else ".nfa.xml")
+        tmpFile.deleteOnExit()
+        Some(new PrintWriter(tmpFile)).foreach{p => p.write(xmlCode); p.close}
+        
+        val fsmViewer = new FSMViewer(tmpFile)
+        fsmViewer.startup(Array())
     }
 }

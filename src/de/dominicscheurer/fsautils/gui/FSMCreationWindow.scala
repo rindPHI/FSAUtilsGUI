@@ -38,10 +38,12 @@ class FSMCreationWindow extends SimpleSwingApplication with Subject[FSMCreationW
     
     def top = new MainFrame {
         title = "A Sample Scala Swing GUI"
-    
-        contents = new BorderPanel {
+        
+        val scrollPane = new ScrollPane()
+        scrollPane.contents = new BorderPanel {
             layout(canvas) = Center
         }
+        contents = scrollPane
     
         size = new Dimension(700, 700)
     
