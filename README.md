@@ -6,7 +6,7 @@ of Deterministic Finite Automata (DFA) and Nondeterministic Finite Automata (NFA
 (i.e., has the functionality of an automata editor) and provides access for common
 operations on Finite State Machines (FSM) provided by the FSAUtils library.
 
-**There exists a first 0.1-alpha release with an attached executable standalone jar file - check this out**
+**There exists a 0.2-alpha release with an attached executable standalone jar file - check this out**
 (https://github.com/rindPHI/FSAUtilsGUI/releases) **!**
 
 Features supported so far
