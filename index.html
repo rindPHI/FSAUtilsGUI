@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="description" content="Fsautilsgui : GUI frontend for FSAUtils for visual creation of DFA/NFA/RE and access to FSAUtils operations.">
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Fsautilsgui</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/rindPHI/FSAUtilsGUI">View on GitHub</a>
+
+          <h1 id="project_title">Fsautilsgui</h1>
+          <h2 id="project_tagline">GUI frontend for FSAUtils for visual creation of DFA/NFA/RE and access to FSAUtils operations.</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/rindPHI/FSAUtilsGUI/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/rindPHI/FSAUtilsGUI/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h1>
+<a id="fsautils-gui" class="anchor" href="#fsautils-gui" aria-hidden="true"><span class="octicon octicon-link"></span></a>FSAUtils GUI</h1>
+
+<p>GUI front end for the FSAUtils toolkit. Supports visual creation and manipulation
+of Deterministic Finite Automata (DFA) and Nondeterministic Finite Automata (NFA).</p>
+
+<p><strong>There exists a first 0.1-alpha release with an attached executable standalone jar file - check this out</strong>
+(<a href="https://github.com/rindPHI/FSAUtilsGUI/releases">https://github.com/rindPHI/FSAUtilsGUI/releases</a>) <strong>!</strong></p>
+
+<h2>
+<a id="features-supported-so-far" class="anchor" href="#features-supported-so-far" aria-hidden="true"><span class="octicon octicon-link"></span></a>Features supported so far</h2>
+
+<ul>
+<li>Visual creation of DFA/NFA</li>
+<li>Visual edition of DFA/NFA</li>
+<li>Save and load from/to serialized XML</li>
+<li>Simple XML text editor</li>
+<li>Front-end for common operations supported by FSAUtils:
+
+<ul>
+<li>Acceptance / Equivalence check</li>
+<li>Union, Intersection, Star, ...</li>
+<li>Minimization of DFA</li>
+<li>Determinization of NFA</li>
+<li>Extraction of Regular Expressions</li>
+</ul>
+</li>
+</ul>
+
+<p>Note that the current release is a non-production one, so you might experience glitches
+for instance in the visual editor. If you have problems with the editor, you still have
+the option of directly editing the XML file, so keep this in mind ;)</p>
+
+<h2>
+<a id="get-started" class="anchor" href="#get-started" aria-hidden="true"><span class="octicon octicon-link"></span></a>Get Started</h2>
+
+<p><strong>Prerequisites:</strong> You need to have Scala and the JVM installed. FSAUtils GUI
+has been tested with Scala 2.11.2 and Java 1.7. Furthermore, the environment
+variable <code>$SCALA_HOME</code> has to be correctly set to the path where Scala resides.</p>
+
+<p>The following steps should work for a Linux system.</p>
+
+<ol>
+<li><p>Download and build FSAUtils (<a href="https://github.com/rindPHI/FSAUtils">https://github.com/rindPHI/FSAUtils</a>).</p></li>
+<li>
+<p>Download the archive:</p>
+
+<div class="highlight highlight-bash"><pre>wget https://github.com/rindPHI/FSAUtilsGUI/archive/master.zip -O FSAUtilsGUI-master.zip</pre></div>
+</li>
+<li>
+<p>Unzip it:</p>
+
+<div class="highlight highlight-bash"><pre>unzip FSAUtilsGUI-master.zip</pre></div>
+</li>
+<li>
+<p>Build it:</p>
+
+<div class="highlight highlight-bash"><pre><span class="pl-sf">cd</span> FSAUtilsGUI-master
+ant</pre></div>
+
+<p>As the result, you find an executable jar file "FSAUtils_GUI.jar" in the directory <code>lib/</code>.</p>
+</li>
+<li>
+<p>...and run it:</p>
+
+<div class="highlight highlight-bash"><pre>java -jar lib/FSAUtils_GUI.jar</pre></div>
+</li>
+</ol>
+
+<h2>
+<a id="license" class="anchor" href="#license" aria-hidden="true"><span class="octicon octicon-link"></span></a>License</h2>
+
+<p>Copyright 2014 Dominic Scheurer</p>
+
+<p>This file is part of FSAUtilsGUI.</p>
+
+<p>FSAUtilsGUI is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.</p>
+
+<p>FSAUtilsGUI is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.</p>
+
+<p>You should have received a copy of the GNU General Public License
+along with FSAUtilsGUI.  If not, see <a href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>.</p>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Fsautilsgui maintained by <a href="https://github.com/rindPHI">rindPHI</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
