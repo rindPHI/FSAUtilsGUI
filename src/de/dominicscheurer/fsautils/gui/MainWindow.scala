@@ -29,6 +29,7 @@ import scala.swing._
 import scala.swing.BorderPanel.Position._
 import scala.swing.event.MouseClicked
 import scala.swing.event.SelectionChanged
+import scala.sys.process._
 import scala.xml.XML
 
 import java.awt.Font
@@ -38,6 +39,8 @@ import javax.swing.filechooser.FileFilter
 import javax.swing.ListSelectionModel
 
 object MainWindow extends SimpleSwingApplication with Observer[FSMCreationWindow] {
+    
+    val STD_IMAGE_EXPORT_TYPE = "png"
     
     var loadedAutomata = Map(): Map[String, File]// ListView of FSMs
     val listView = new ListView(loadedAutomata.keys.toSeq) {
@@ -63,6 +66,76 @@ object MainWindow extends SimpleSwingApplication with Observer[FSMCreationWindow
         
         // Menu Items
         val fsmMenu = new Menu("FSM Actions") {
+            contents += new MenuItem(Action("Export as Image") {
+                val fsm = getFSM(selectedFile)
+                
+                val chooser = new FileChooser(new File("."))
+                
+                List(
+                    fileFilterFor("bmp", "Windows Bitmap format (BMP)"),
+                    fileFilterFor("gif", "Graphics Interchange Format (GIF)"),
+                    fileFilterFor("jpg", "Joint Photographic Experts Group format (JPG)"),
+                    fileFilterFor("pdf", "Portable Document Format (PDF)"),
+                    fileFilterFor("png", "Portable Network Graphics format (PNG)"),
+                    fileFilterFor("ps",  "PostScript (PS)"),
+                    fileFilterFor("svg", "Scalable Vector Graphics (SVG)"),
+                    fileFilterFor("vml", "Vector Markup Language (VML)")).foreach {
+                        filter => chooser.peer.addChoosableFileFilter(filter)
+                    }
+                chooser.fileFilter = fileFilterFor("png", "Portable Network Graphics format (PNG)")
+                
+                chooser.title = "Export " + (if (fsm.isDFA) "DFA" else "NFA")
+                chooser.peer.setAcceptAllFileFilterUsed(false)
+                
+                val result = chooser.showOpenDialog(this)
+                if (result == FileChooser.Result.Approve) {
+                    
+                    val selFile =  
+                        if (chooser.selectedFile.getName.split('.').size > 1)
+                            chooser.selectedFile
+                        else
+                            new File(chooser.selectedFile.toString + "." + STD_IMAGE_EXPORT_TYPE)
+                    val ending = 
+                        if (selFile.getName.split('.').size > 1)
+                            selFile.getName.split('.').last
+                        else
+                            STD_IMAGE_EXPORT_TYPE
+                    
+                    // Load selected automaton file
+                    val source = fromFile(selectedFile)
+                    val content = source.mkString
+                    source.close()
+                    
+                    // Generate dot code
+                    val dotCode =
+                        if (selectedFile.getName.endsWith("dfa.xml"))
+                            GraphvizBridge.toDot(DFA.fromXml(XML.loadString(content)))
+                        else
+                            GraphvizBridge.toDot(NFA.fromXml(XML.loadString(content)))
+                    
+                    // Write dot code
+                    val tmpInputFile = java.io.File.createTempFile("FSAUtils", "." + ending)
+                    tmpInputFile.deleteOnExit()
+                    Some(new PrintWriter(tmpInputFile)).foreach{p => p.write(dotCode); p.close}
+                    
+                    // Transform with Graphviz
+                    if ((Seq("dot", "-V").! == 0) &&
+                        (Seq("dot", "-T" + ending, "-o", selFile.toString, tmpInputFile.toString).! == 0)) {
+                        Dialog.showMessage(
+                                this,
+                                "Image has been saved to " + selFile.toString,
+                                "Output images was successfully generated")
+                    } else {
+                        Dialog.showMessage(
+                                this,
+                                "Either the dot command is not in your path (is Graphviz installed?), "+
+                                  "or there were other problems while generating your output image " +
+                                  "(make sure your chose a correct image extension and path).",
+                                "Error: Output images was not successfully generated")
+                    }
+                }
+            })
+            contents += new Separator
             contents += new MenuItem(Action("Check word acceptance") {
                 Dialog.showInput(
                     this,
@@ -112,6 +185,7 @@ object MainWindow extends SimpleSwingApplication with Observer[FSMCreationWindow
                             "Check for Equivalence")
                 }
             })
+            contents += new Separator
             contents += new MenuItem(Action("(RE) Get Regular Rxpression") {
                 val fsm = getFSM(selectedFile)
                 val re: RE = fsm.asDFA match {
@@ -125,6 +199,7 @@ object MainWindow extends SimpleSwingApplication with Observer[FSMCreationWindow
                         "Regular Expression Conversion",
                         initial = re.clean.cleanString)
             })
+            contents += new Separator
             contents += new MenuItem(Action("(+) Concatenation") {
                 getBinaryFSMOpInput(this) match {
                     case None =>
@@ -357,4 +432,12 @@ object MainWindow extends SimpleSwingApplication with Observer[FSMCreationWindow
         val fsmViewer = new FSMViewer(tmpFile)
         fsmViewer.startup(Array())
     }
+    
+    private def fileFilterFor(ending: String, description: String) =
+        new FileFilter() {
+            def accept(f: File) =
+                f.getName.toLowerCase.endsWith(ending) ||
+                f.isDirectory()
+            def getDescription = description
+        }
 }

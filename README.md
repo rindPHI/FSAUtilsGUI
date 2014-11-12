@@ -14,6 +14,7 @@ Features supported so far
 
 * Visual creation of DFA/NFA
 * Visual edition of DFA/NFA
+* Export DFA/NFA to a lot of image formats supported by GraphViz
 * Save and load from/to serialized XML
 * Simple XML text editor
 * Front-end for common operations supported by FSAUtils:
