@@ -7,6 +7,7 @@
     <property name="src.dir" value="src"/>
 	<property name="build.dir" value="build"/>
     <property name="build-lib.dir" value="lib"/>
+	<property name="fsautils.file.name" value="FSAUtils-1.1-beta.jar"/>
 	
     <path id="scala.libraries">
         <pathelement location="${env.SCALA_HOME}/lib/scala-library.jar"/>
@@ -14,20 +15,38 @@
         <pathelement location="${env.SCALA_HOME}/lib/scala-actors_*.jar"/>
         <pathelement location="${env.SCALA_HOME}/lib/scala-swing_*.jar"/>
     </path>
+    
+    <target name="dl_FSAUtils">
+        <get src="https://github.com/rindPHI/FSAUtils/releases/download/v1.1-beta/FSAUtils.jar" 
+             dest="${fsautils.file.name}" skipexisting="true"/>
+    </target>
     	
-    <target name="init">
+    <target name="init" depends="dl_FSAUtils">
     	<mkdir dir="${build.dir}"/>
         <mkdir dir="${build-lib.dir}"/>
+
+        <path id="scala-swing-file"> 
+            <fileset dir="${env.SCALA_HOME}/lib/"> 
+                <include name="scala-swing*.jar"/> 
+             </fileset>
+        </path>
+        <path id="scala-xml-file"> 
+            <fileset dir="${env.SCALA_HOME}/lib/"> 
+                <include name="scala-xml*.jar"/> 
+             </fileset>
+        </path>
+    	
         <property
             name="scala-library.jar"
             value="${env.SCALA_HOME}/lib/scala-library.jar" />
-        <property
-            name="scala-swing.jar"
-            value="${env.SCALA_HOME}/lib/scala-swing_2.11-1.0.1.jar" />
+        <property name="scala-swing.jar" refid="scala-swing-file" />
+        <property name="scala-xml.jar" refid="scala-xml-file" />
         <path id="build.classpath">
             <pathelement location="${scala-library.jar}" />
             <pathelement location="${scala-swing.jar}"/>
+            <pathelement location="${scala-xml.jar}"/>
             <pathelement location="${build.dir}" />
+            <pathelement location="${fsautils.file.name}" />
         </path>
         <taskdef resource="scala/tools/ant/antlib.xml">
             <classpath>
@@ -42,8 +61,12 @@
         <delete dir="${build.dir}"/>
         <delete dir="${build-lib.dir}"/>
     </target>
-	
-    <target depends="clean" name="cleanall"/>
+    
+    <target name="cleanDownloads">
+        <delete file="${fsautils.file.name}"/>
+    </target>
+    
+    <target depends="clean, cleanDownloads" name="cleanall"/>
 	
     <target depends="init" name="build">
         <echo message="${ant.project.name}: ${ant.file}"/>
@@ -58,6 +81,7 @@
         <jar destfile="${build-lib.dir}/FSAUtils_GUI.jar">
             <fileset dir="${build.dir}"/>
             <fileset dir="." includes="LICENSE"/>
+            <zipfileset includes="**/*.class" src="${fsautils.file.name}"/>
         </jar>
         <jar destfile="${build-lib.dir}/FSAUtils_GUI.src.jar">
             <fileset dir="${src.dir}" includes="**/*.scala"/>
