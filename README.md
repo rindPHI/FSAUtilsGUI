@@ -1,12 +1,26 @@
 FSAUtils GUI
 ============
 
-GUI front end for the FSAUtils toolkit.
+GUI front end for the FSAUtils toolkit. Supports visual creation and manipulation
+of Deterministic Finite Automata (DFA) and Nondeterministic Finite Automata (NFA).
 
 Features supported so far
 -------------------------
 
-* (...)
+* Visual creation of DFA/NFA
+* Visual edition of DFA/NFA
+* Save and load from/to serialized XML
+* Simple XML text editor
+* Front-end for common operations supported by FSAUtils:
+  * Acceptance / Equivalence check
+  * Union, Intersection, Star, ...
+  * Minimization of DFA
+  * Determinization of NFA
+  * Extraction of Regular Expressions
+  
+Note that the current release is a non-production one, so you might experience glitches
+for instance in the visual editor. If you have problems with the editor, you still have
+the option of directly editing the XML file, so keep this in mind ;)
 
 Get Started
 -----------
@@ -22,13 +36,13 @@ The following steps should work for a Linux system.
 2. Download the archive:
    
    ```bash
-   wget https://github.com/rindPHI/FSAUtilsGUI/archive/master.zip
+   wget https://github.com/rindPHI/FSAUtilsGUI/archive/master.zip -O FSAUtilsGUI-master.zip
    ```
    
 3. Unzip it:
    
    ```bash
-   unzip master.zip
+   unzip FSAUtilsGUI-master.zip
    ```
    
 4. Build it:
@@ -38,14 +52,12 @@ The following steps should work for a Linux system.
    ant
    ```
    
-   As the result, you find a file "FSAUtils_GUI.jar" in the directory `lib/`
-   which you need to add to the classpath of scalac and scala in order
-   to compile / run your objects that make use of FSAUtils.
+   As the result, you find an executable jar file "FSAUtils_GUI.jar" in the directory `lib/`.
    
 5. ...and run it:
    
    ```bash
-   scala -classpath ".:/path/to/FSAUtils.jar:/path/to/FSAUtils_GUI.jar" de.dominicscheurer.fsautils.gui.SimpleWindow
+   java -jar lib/FSAUtils_GUI.jar
    ```
 
 License

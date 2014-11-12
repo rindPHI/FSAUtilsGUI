@@ -34,6 +34,7 @@
             value="${env.SCALA_HOME}/lib/scala-library.jar" />
         <property name="scala-swing.jar" refid="scala-swing-file" />
         <property name="scala-xml.jar" refid="scala-xml-file" />
+    	
         <path id="build.classpath">
             <pathelement location="${scala-library.jar}" />
             <pathelement location="${scala-swing.jar}"/>
