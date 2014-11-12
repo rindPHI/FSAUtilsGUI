@@ -2,7 +2,9 @@ FSAUtils GUI
 ============
 
 GUI front end for the FSAUtils toolkit. Supports visual creation and manipulation
-of Deterministic Finite Automata (DFA) and Nondeterministic Finite Automata (NFA).
+of Deterministic Finite Automata (DFA) and Nondeterministic Finite Automata (NFA)
+(i.e., has the functionality of an automata editor) and provides access for common
+operations on Finite State Machines (FSM) provided by the FSAUtils library.
 
 **There exists a first 0.1-alpha release with an attached executable standalone jar file - check this out**
 (https://github.com/rindPHI/FSAUtilsGUI/releases) **!**
@@ -31,6 +33,8 @@ Get Started
 **Prerequisites:** You need to have Scala and the JVM installed. FSAUtils GUI
 has been tested with Scala 2.11.2 and Java 1.7. Furthermore, the environment
 variable `$SCALA_HOME` has to be correctly set to the path where Scala resides.
+Furthermore, the visual editor also uses Graphviz which therefore has to be
+installed on your system.
 
 The following steps should work for a Linux system.
 
