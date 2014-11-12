@@ -4,7 +4,8 @@ FSAUtils GUI
 GUI front end for the FSAUtils toolkit. Supports visual creation and manipulation
 of Deterministic Finite Automata (DFA) and Nondeterministic Finite Automata (NFA).
 
-**There exists a first 0.1-alpha release with an attached executable standalone jar file - check this out!**
+**There exists a first 0.1-alpha release with an attached executable standalone jar file - check this out**
+(https://github.com/rindPHI/FSAUtilsGUI/releases)**!**
 
 Features supported so far
 -------------------------
